@@ -111,6 +111,7 @@
         #footnote(numbering: "*")[
           Supervisor.
         ]
+        #counter(footnote).update(0)
       ],
     ),
   ),
@@ -123,13 +124,21 @@
 // allowing figures to float to the most appropriate location.
 #set figure(placement: auto)
 
+// Link styling
+#show link: underline
+#show link: set text(fill: navy)
+
+#import "@preview/fletcher:0.5.8": diagram, node, edge
+
 = Introduction
 
 This report is for the Independent Work project _CSE Request System_, abbreviated *CRS*. This project was developed by Yuyi Ding and Harry Li under the supervision of Dr. Yau Chat Tsoi.
 
 == Overview
 
-CRS is a system designed to streamline and manage students' course administrative requests for courses offered by the Computer Science and Engineering (CSE) department, such as requests to swap lab sections, request an excused absent from lab sessions, extend assignment deadlines, and appeal grades on assignments. The system aims to provide a user-friendly interface for both students and instructors to facilitate efficient request--response handling and record-keeping.
+CRS is a system to streamline and manage students' course administrative requests for courses offered by the Computer Science and Engineering (CSE) department, such as swapping lab sections, excused absence from lab sessions, extending assignment deadlines, and appealing assignment grades. The system aims to provide a user-friendly interface for both students and instructors to facilitate efficient request--response handling and record-keeping.
+
+The system is available at https://crs.cse.ust.hk/. Anyone with an HKUST account ending with either `@connect.ust.hk` or `@ust.hk` can access the system. However, only those who are granted access to a specific course can operate the system.
 
 #figure(
   placement: bottom,
@@ -195,11 +204,105 @@ Other improvements include, for example, the better and more modern UI/UX design
 
 = Methodology
 
+We want to uphold the following goals in the design and implementation of CRS:
+
+- The development of CRS should follow the best practices in software engineering.
+  - It should not be an ad hoc effort that produces a one-off solution.
+
+- The development of CRS should follow modern principles.
+  - This is beneficial both for system development and for our learning experience.
+
+- The development of CRS should be open-source.
+  - The system's security should not rely on the obscurity of its source code.
+  - The system can become a future reference for similar systems.
+  - This also forces us to maintain reasonably clear documentation.
+
+Based on the above goals, the system was developed using *TypeScript* #footnote[https://www.typescriptlang.org/] as the main programming language. The tech stack includes *Bun* #footnote[https://bun.sh/] as the runtime and package manager, *Zod* #footnote[https://zod.dev/] as the data modelling library, *tRPC* #footnote[https://trpc.io/] as the frontend--backend communication protocol library, *MongoDB* #footnote[https://www.mongodb.com/] as the persistent data storage, and *React* #footnote[https://react.dev/] with *Next.js* #footnote[https://nextjs.org/], *shadcn/ui* #footnote[https://ui.shadcn.com/], and *Tailwind CSS* #footnote[https://tailwindcss.com/] as the frontend development stack.
+
+The source code of CRS is available on GitHub #underline[HKUST-CRS/crs] #footnote[https://github.com/HKUST-CRS/crs], licensed under the MIT License.
+
 == Design
+
+#quote(block: true)[
+  An important development goal of CRS is to follow the best practices and modern principles in software engineering. 
+]
+
+We chose TypeScript as the main programming language. By leveraging TypeScript's powerful type system, we believe it is easier to define complex data models --- especially complex form models --- and to preserve runtime type safety in communication between the backend and the frontend. To share a single set of data models across the backend and the frontend, we developed both in TypeScript and organized them in the same Git repository as a _monorepo_ #footnote[https://bun.com/guides/install/workspaces], which allows different parts of the system to cross-reference each other while preserving modularity.
+
+The system is organized into three main modules (referred to as _packages_ in JavaScript terms): 
+
+/ Service: This package is the basis of the system. It defines the data models of the system, including the schemas of requests, responses, users, courses, and sections. It also provides an implementation of the data models and business logic of the system, including the core request--response logic (with authorization support), the notification logic, and the admin panel logic. This package does not depend on any specific backend or frontend framework, and is designed to be used by the other two packages.
+
+/ Server: This package defines the backend _server_ of the system. It abstracts over concrete Internet protocols using a technique called _Remote Procedure Call_ (RPC), which preserves type safety naturally without manually serializing/deserializing data. It also provides the authentication logic that allows users to access the system via their HKUST account.
+
+/ Site: This package defines the frontend web#emph[site] of the system. It utilizes popular frameworks to provide a modern and user-friendly interface.
+
+@fig-crs-architecture illustrates the relationship between the modules and libraries.
+
+#figure(
+  caption: [
+    The high-level architecture of CRS, including the three main modules: *Service*, *Server*, and *Site*. The dashed lines represent dependency relationships. The dotted line represents user interaction. The solid line represents communication between *Server* and *Site* via the Internet.
+  ],
+  placement: bottom,
+)[
+  #block(inset: 5mm)[
+    #diagram(
+      spacing: (10mm, 10mm), // wide columns, narrow rows
+      node((0, 0), [Zod]),
+      node((0, 1), [MongoDB]),
+      node((2, 0.5), [*Service*]),
+      edge((0, 0), (2, 0.5), "<--",),
+      edge((0, 1), (2, 0.5), "<--",),
+
+      node((1, 2), [*Server*]),
+      node((3, 2), [*Site*]),
+      edge((1, 2), (2, 0.5), "-->"),
+      edge((3, 2), (2, 0.5), "-->"),
+
+      edge((1, 2), (3, 2), "<|-|>", [tRPC]),
+
+      node((0, 3.5), [React]),
+      node((1, 3.5), [Next.js]),
+      node((2, 3.5), [shad/cn]),
+      node((3, 3.5), [Tailwind CSS]),
+      edge((0, 3.5), (3, 2), "<--"),
+      edge((1, 3.5), (3, 2), "<--"),
+      edge((2, 3.5), (3, 2), "<--"),
+      edge((3, 3.5), (3, 2), "<--"),
+
+      node((4, 0), [CSE Admins], stroke: none),
+      node((4, 1), [Students], stroke: none),
+      node((4, 2), [Instructors], stroke: none),
+      node((4, 3), [Teaching Assistants], stroke: none),
+      edge((3, 2), (4, 0), "..", bend: 30deg),
+      edge((3, 2), (4, 1), "..", bend: 15deg),
+      edge((3, 2), (4, 2), "..", bend: 0deg),
+      edge((3, 2), (4, 3), "..", bend: -15deg),
+    )
+  ]
+] <fig-crs-architecture>
+
+=== Service
+
+=== Server
+
+=== Site
 
 == Implementation
 
+=== Service
+
+=== Server
+
+=== Site
+
 == Testing
+
+=== Service
+
+=== Server
+
+=== Site
 
 == Evaluation
 
