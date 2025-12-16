@@ -3,6 +3,7 @@
   authors: (),
   date: none,
   logo: none,
+  abstract: none,
   body,
 ) = {
   // Set the document's basic properties.
@@ -43,6 +44,30 @@
   pagebreak()
   set page(numbering: "1", number-align: center, margin: (rest: 20mm, bottom: 15mm))
 
+  // Main body.
+  set par(justify: true)
+
+  if abstract != none {
+    // Abstract section.
+    [
+      #place(
+        center+horizon,
+        dy: -5em,
+        block(
+          width: 75%,
+          [
+            #show heading: set align(center)
+
+            = Abstract
+            #v(0.5em)
+            #abstract
+          ]
+        ),
+      )
+    ]
+    pagebreak()
+  }
+
   // Table of contents.
   outline(depth: 3, indent: auto)
   pagebreak()
@@ -53,9 +78,6 @@
     }
     it
   }
-
-  // Main body.
-  set par(justify: true)
 
   // Heading Numbering
   set heading(numbering: "1.")
@@ -94,7 +116,12 @@
   ),
   date: datetime.today().display("[month repr:long] [day], [year]"),
   logo: "../COMP_FYP_Logo_transparent_1200dpi.png",
+  abstract: lorem(120)
 )
+
+// Automatic figure placement, 
+// allowing figures to float to the most appropriate location.
+#set figure(placement: auto)
 
 = Introduction
 
