@@ -307,7 +307,6 @@ The service module has four major parts: `db`, `models`, `functions`, and `lib`.
 
 In the initial design of the system, authorization was done in the `server` module. The `service` module only contained the `functions` layer, which was named `lib` at that time. However, we later decided to move authorization into the `service` module for the following reasons:
 
-- The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should be able to handle all actual logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modularization design.
 - The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modular design.
 - Putting authorization and other logic together in the `service` module makes it easier to write unit tests, where we care not only about the correctness of database interactions, but also about comprehensive coverage of permission cases.
 
