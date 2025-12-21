@@ -243,7 +243,6 @@ The system is organized into three main modules (referred to as _packages_ in Ja
   caption: [
     The high-level architecture of CRS, including the three main modules: *Service*, *Server*, and *Site*. The dashed lines represent dependency relationships. The dotted line represents user interaction. The solid line represents communication between *Server* and *Site* via the Internet.
   ],
-  placement: bottom,
 )[
   #block(inset: 5mm)[
     #diagram(
@@ -286,22 +285,33 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 
 === Service
 
-The service module has four major parts: `db`, `models`, `functions` and `lib`.
+The service module has four major parts: `db`, `models`, `functions`, and `lib`.
 
-/ `db`: This part provides some util functions for connecting to the database and creating indexes. They are used in both testing and production. Besides, a database collections type is also defined here. The collections type is then used by later parts to access the database in a type-safe way, without considering chores such as connecting to the database and getting the collection handles.
+/ `db`: 
 
-/ `models`: The part defines all data models that are used across the system. The three main models are _user_, _course_, and _request_. The _user_ and _course_ models are kept simple, following the data format in the ITSC system. For example, the user's ITSC email is used as their unique id, and semesters are denoted using 4-digit code (e.g. `2510` for 2025-26 Fall). In this way, data sharing between CRS and the ITSC system can be done more smoothly. The _request_ model is more complex. All requests are expected to have some same information, such as request type, status and timestamps, while different request types may contain different fields. To provide a unified request interface while allowing extension of more request types in the future, a `BaseRequest` schema containing common request information is first defined. All other specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, extend from the base schema and have their own fields added. At last, a discriminated union `Request` schema is defined by combining all request types together.
+  This part provides utility functions for connecting to the database and creating indexes. They are used in both testing and production. In addition, a type for the database collections is defined here. Later parts use this type to access the database in a type-safe way, without repeating boilerplate such as connecting to the database and retrieving collection handles.
 
-/ `functions`: This layer implements the major part of the system's logic without considering authorization. It interacts with the database directly with queries to achieve functions like checking requests and creating responses. All functions are implemented in a modular way, so that they can be easily reused in other functions or different layers in the _service_ module.
+/ `models`: 
 
-/ `lib`: This layer is built on top of the `functions` layer, and is supposed to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is done by two helper functions `assertCourseRole` and `assertClassRole`, whose arguments are set to different values for different purposes. After verifying the permission, the corresponding underlying `functions` are called.
+  This part defines all data models used across the system. The three main models are _user_, _course_, and _request_. The _user_ and _course_ models are kept simple, following the data format in the ITSO system. For example, a user's ITSO email is used as their unique ID, and terms are denoted using a 4-digit code --- the first two digits denote the academic year, and the last two digits denote the term (Fall, Winter, Spring, and Summer). For instance, `2510` denotes 2025-26 Fall. In this way, data sharing between CRS and the ITSO system can be done more smoothly.
+
+  The _request_ model is more complex. All requests are expected to share some common information (e.g., request type, status, and timestamps), while different request types may contain different fields. To provide a unified request interface while allowing new request types to be added in the future, we first define a `BaseRequest` schema that contains common request information. Specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, extend this base schema with additional fields. Finally, we define a discriminated union `Request` schema by combining all request types.
+
+/ `functions`: 
+
+  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (via queries) to implement operations such as retrieving requests and creating responses. All functions are implemented in a modular way so they can be easily reused by other functions or layers in the _service_ module.
+
+/ `lib`: 
+
+  This layer is built on top of the `functions` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced via two helper functions, `assertCourseRole` and `assertClassRole`, whose arguments are set to different values for different purposes. After verifying permissions, the corresponding underlying `functions` are called.
 
 In the initial design of the system, authorization was done in the `server` module. The `service` module only contained the `functions` layer, which was named `lib` at that time. However, we later decided to move authorization into the `service` module for the following reasons:
 
 - The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should be able to handle all actual logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modularization design.
-- Putting authorization and other logic together in the `service` module make it easier to write unit tests, where we not only care about the correctness of database interaction, but also emphasize comprehensive coverage of different permission cases.
+- The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modular design.
+- Putting authorization and other logic together in the `service` module makes it easier to write unit tests, where we care not only about the correctness of database interactions, but also about comprehensive coverage of permission cases.
 
-Moreover, the `functions` and `lib` layers are separated intentionally. It makes organization simpler and cleaner. Meanwhile, it also allows some internal parts to call `functions` directly without going through authorization.
+Moreover, the `functions` and `lib` layers are intentionally separated. This keeps the organization simpler and cleaner, and also allows internal components to call `functions` directly without going through authorization.
 
 === Server
 
@@ -311,7 +321,7 @@ Moreover, the `functions` and `lib` layers are separated intentionally. It makes
 
 === Service
 
-Comprehensive tests were implemented using the bun test framework. During the tests, service instances are created just like how they are used in `server`. The difference is the tests use an in-memory MongoDB server. The tests cover all major apis in the `lib` layer, including creating requests, responding to requests, and managing courses and users. Different user roles and permission cases are also tested to ensure users cannot access unauthorized data.
+We implemented comprehensive tests using Bun's test framework. In tests, service instances are created similarly to the production environment. The key difference is that the tests use an in-memory MongoDB server rather than an external one. The tests cover all major APIs in the `lib` layer, including creating requests, responding to requests, and managing courses and users. Different user roles and permission cases are also tested to ensure users cannot access unauthorized data.
 
 === Server
 
