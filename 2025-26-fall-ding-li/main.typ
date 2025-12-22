@@ -307,7 +307,11 @@ Because the *Server* package is essentially a thin wrapper around the *Service* 
 
 == Evaluation
 
-= Planning
+We evaluated the system through demonstrations at the end of each development iteration for our supervisor, Dr. Desmond Tsoi, and, when appropriate, invited guests. These demonstrations took the form of face-to-face meetings, where we showcased the system's functionality and workflow and collected feedback from the attendees.
+
+For details of the demonstration sessions, please refer to @sec-planning.
+
+= Planning <sec-planning>
 
 We planned the project's first iteration in several stages:
 
