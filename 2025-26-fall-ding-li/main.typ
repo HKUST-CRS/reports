@@ -308,6 +308,34 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 
 = Planning
 
+We planned the project's first iteration in several stages:
+
++ *Requirement Capturing*. This stage involved capturing the requirements of the system from our prospective users. We captured the instructor-side requirements from our supervisor, Dr. Desmond Tsoi, and the student-side requirements from ourselves as students. This stage lasted about one week (Aug 24--Aug 31). #footnote[All dates mentioned in this section are in 2025.]
+
++ *Design and Analysis.* This stage involved designing the architecture of the system and analyzing the feasibility of the design choices. We carried out this stage by creating prototypes for each module (*Service*, *Server*, and *Site*) and performing peer review on them. This stage, together with the next stage, lasted about one month (Sep 1--Sep 30).
+
++ *Implementation and Testing.* This stage involved implementing the system based on the design and analysis from the previous stage. We carried out this stage through iterative development: we implemented a feature, tested it, and then refined it based on feedback.
+
+After the first iteration, we were ready to deliver the first release of the system, which contained all the core functionalities based on the requirements captured in the first stage. We then deployed the system to a production server for real-world usage and evaluation. We conducted a software evaluation on Oct 9 to demonstrate the core system functionalities to our supervisor, Dr. Desmond Tsoi. The feedback collected from the evaluation was positive, and a few suggestions were made for future improvements.
+
+Next, in the second iteration, we planned to improve the core functionalities based on feedback from our supervisor and potential users, and to implement additional features that were not included in the first iteration due to time constraints. The tasks include:
+
++ *Admin Panel.* There should be a panel that allows course instructors to manage and configure the system, including managing and configuring the enrollment of students, instructors, and teaching assistants in the course, the types of requests that are supported by the system, and the concrete setup of each type of request (e.g., the available lab sections, the deadlines, and the maximum extension time for assignments).
+
++ *Email Refinement.* The email notification system should be refined to provide more informative content, such as a summary of the request and response, and to improve the email formatting.
+
++ *Permission System.* The permission system should be improved to support more fine-grained access control. Users who do not have permission to view certain requests should not be able to see them in the request list and should not be able to access them via direct URL access. Users who do not have permission to submit responses to certain requests should not be able to submit responses to them.
+
+All tasks in the second iteration were completed. Development lasted about two months (Oct 1--Nov 30). In the meantime, we were also fixing minor bugs and improving the UI/UX design.
+
+We conducted a software evaluation near the end of the second iteration on Nov 27. The evaluation involved demonstrating the system to our supervisor, Dr. Desmond Tsoi, and a few invited guests. The feedback collected from the evaluation was positive, and a few suggestions were made for future improvements. We concluded that the system had met the initial objectives and was ready for its first production deployment.
+
+There are still feature requests and improvement suggestions recorded for future releases of the system. We plan to continue the development of the system in the future.
+
+The feature requests and improvement suggestions of the system are tracked in GitHub Issues: https://github.com/HKUST-CRS/crs/issues. The development progress and history of the system are recorded in GitHub Pull Requests: https://github.com/HKUST-CRS/crs/pulls.
+
+The project development plan is recorded and maintained in GitHub Projects: https://github.com/orgs/HKUST-CRS/projects/2.
+
 = Conclusion
 
 == Acknowledgements
