@@ -243,7 +243,6 @@ The system is organized into three main modules (referred to as _packages_ in Ja
   caption: [
     The high-level architecture of CRS, including the three main modules: *Service*, *Server*, and *Site*. The dashed lines represent dependency relationships. The dotted line represents user interaction. The solid line represents communication between *Server* and *Site* via the Internet.
   ],
-  placement: bottom,
 )[
   #block(inset: 5mm)[
     #diagram(
@@ -298,11 +297,13 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 
 == Testing
 
+Testing is an essential part of the software development lifecycle. It helps ensure the correctness, reliability, and robustness of the system. We performed unit testing and integration testing on the *Service* package, and we planned to perform system testing on the whole system, including the *Server* and *Site* packages, in the future.
+
 === Service
 
-=== Server
+=== Server and Site
 
-=== Site
+Because the *Server* package is essentially a thin wrapper around the *Service* package that exposes its functionality via tRPC, we did not perform separate unit or integration testing on the *Server* package. The *Site* package is primarily a user interface, so unit and integration testing are less suitable there as well. We planned to perform system testing using an automated browser testing framework to test the *Server* and *Site* packages together in the future.
 
 == Evaluation
 
