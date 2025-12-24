@@ -150,7 +150,7 @@ The system is available at https://crs.cse.ust.hk/. Anyone with an HKUST account
     inset: (x: 1cm, y: 0.5cm),
     image("figure/crs-students-view.png")
   )
-]
+] <fig-crs-students-view>
 
 == Objectives
 
@@ -366,7 +366,64 @@ Moreover, the `repos` and `lib` layers are intentionally separated. This keeps t
 
 === Server
 
+The *Server* module is relatively simple. It mainly sets up the services from the *Service* module, and then uses tRPC to expose them as RPC endpoints over HTTP.
+
+The authentication logic is also in this module. HKUST accounts use Microsoft's OAuth service for authentication. This allows us to delegate the authentication process to HKUST (via Microsoft), which allows HKUST members to login using their existing accounts without specifically creating new accounts for CRS.
+
 === Site
+
+The *Site* module is a website built using React, Next.js, shadcn/ui, and Tailwind CSS. It provides a modern, user-friendly interface for users to interact with the system.
+
+@fig-crs-students-view shows the main interface of CRS from a student's perspective. Other screenshots of the request and response forms are shown in @fig-crs-request, @fig-crs-request-swap-section, @fig-crs-request-deadline-extension, and @fig-crs-response.
+
+#figure(
+  caption: [
+    Screenshots of CRS' request form. Only after the user selects a class are the instructors teaching the class shown, and the request type becomes selectable.
+  ],
+)[
+  #block(
+    inset: (y: 0.5cm),
+  )[
+    #image("figure/crs-request.png")
+    #image("figure/crs-request-select-class.png")
+  ]
+] <fig-crs-request>
+
+#figure(
+  caption: [
+    A screenshot of CRS' request form for the _swap section_ request type. The form dynamically shows the available lab sections and their dates based on the selected class, followed by a _reason_ text area and a _proof documentation(s)_ file-upload field for the user's explanation and evidence.
+  ],
+)[
+  #block(
+    inset: (y: 0.5cm),
+  )[
+    #image("figure/crs-request-swap-section.png")
+  ]
+] <fig-crs-request-swap-section>
+
+#figure(
+  caption: [
+    A screenshot of CRS' request form for the _deadline extension_ request type. The form dynamically shows the available assignments. The _reason_ and _proof documentation(s)_ fields are the same as those in the _swap section_ request type.
+  ],
+)[
+  #block(
+    inset: (y: 0.5cm),
+  )[
+    #image("figure/crs-request-deadline-extension.png")
+  ]
+] <fig-crs-request-deadline-extension>
+
+#figure(
+  caption: [
+    A screenshot of CRS' response form. It is based on the request form but all fields are read-only, followed by the response section, where the instructor can add remarks and choose to either approve or reject the request.
+  ],
+)[
+  #block(
+    inset: (y: 0.5cm),
+  )[
+    #image("figure/crs-response.png")
+  ]
+] <fig-crs-response>
 
 == Testing
 
