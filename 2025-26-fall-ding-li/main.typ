@@ -117,7 +117,9 @@
   ),
   date: datetime.today().display("[month repr:long] [day], [year]"),
   logo: "../COMP_FYP_Logo_transparent_1200dpi.png",
-  abstract: lorem(120)
+  abstract: [
+    The CSE Request System (CRS) is a web-based platform that streamlines course administrative requests in the HKUST CSE department, replacing ad hoc email workflows with a structured request--response process. CRS supports heterogeneous request types (e.g., lab section swaps, deadline extensions, excused absences, and grade appeals) with type-specific form fields, role-based access control for students, instructors, teaching assistants, and administrators, and email notifications to keep participants informed and maintain an auditable record. We designed CRS as an open-source TypeScript monorepo with a shared service layer for data models, business logic, and authorization, exposed through a thin RPC-based server and a modern React/Next.js frontend backed by MongoDB. The system was developed iteratively with unit and integration testing on the service layer and evaluated through demonstrations and feedback sessions, culminating in a production deployment.
+  ]
 )
 
 // Automatic figure placement, 
