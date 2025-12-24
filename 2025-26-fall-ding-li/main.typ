@@ -281,15 +281,88 @@ The system is organized into three main modules (referred to as _packages_ in Ja
   ]
 ] <fig-crs-architecture>
 
-=== Service
-
-=== Server
-
-=== Site
-
 == Implementation
 
 === Service
+
+The service module has four main parts: `db`, `models`, `repos`, and `lib`.
+
+/ `db`: 
+
+  This part provides utilities for connecting to the database and creating indexes. These are used in both testing and production. It also defines a type for the database collections. Other parts use this type to access the database in a type-safe way, without repeating boilerplate such as connecting to the database and retrieving collection handles.
+
+/ `models`: 
+
+  This part defines all data models used across the system. The three main models are _user_, _course_, and _request_. The _user_ and _course_ models are kept simple, following the data format in the ITSO system. For example, a user's ITSO email is used as their unique ID, and terms are denoted using a 4-digit code --- the first two digits denote the academic year, and the last two digits denote the term (Fall, Winter, Spring, and Summer). For instance, `2510` denotes 2025-26 Fall. In this way, data sharing between CRS and the ITSO system can be done more smoothly.
+
+  The _request_ model is more complex. All requests are expected to share some common fields (e.g., requester, status, and timestamps), while different request types may contain different additional fields. To provide a uniform interface while still allowing new request types to be added in the future, we first define a `BaseRequest` schema that contains the common request information. Specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, are then constructed using the function `createRequestType`, which extends the base schema with a type literal and additional metadata fields. Finally, the general request model `Request` is defined as a discriminated union of all specific request types. For a `Request` object, we can check the `type` field to determine the specific request type and then access the corresponding metadata fields in a type-safe way.
+
+/ `repos`: 
+
+  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (through queries) to implement operations such as retrieving requests and creating responses. Repos are implemented modularly so they can be easily reused by other repos and layers within the service module.
+
+/ `lib`: 
+
+  This layer is built on top of the `repos` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced using two helper functions, `assertCourseRole` and `assertClassRole`, which are called with different arguments for different purposes. After permissions are verified, the corresponding repo operations are invoked.
+
+In the initial design of the system, authorization lived in the `server` module. At that time, the `service` module only contained what is now the `repos` layer (it was named `lib`). However, we later decided to move authorization into the `service` module for the following reasons:
+
+- The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full workflow, including authorization. This ensures that changing the backend framework (e.g., from `tRPC` to something else) will not affect the permission system, which is a better modular design.
+- Putting authorization and other logic together in the `service` module makes it easier to write unit tests, where we care not only about the correctness of database interactions, but also about comprehensive coverage of permission cases.
+
+Moreover, the `repos` and `lib` layers are intentionally separated. This keeps the structure simpler and cleaner, and it also allows internal components to call `repos` directly without going through authorization.
+
+@fig-service-structure illustrates the relationships among the service submodules.
+
+#figure(
+  caption: [
+    The internal architecture of the *Service* package.
+  ],
+)[
+  #block(inset: 5mm)[
+    #diagram(
+      spacing: (9mm, 6mm),
+
+      node((-0.7, 1.5), [MongoDB], name: <mongodb>),
+      node((-0.7, 2.5), [Zod], name: <zod>),
+      node((0.5, 1.5), `db`, stroke: 1pt, name: <dbconn>),
+      node((0.5, 2.5), `models`, stroke: 1pt, name: <models>),
+
+      edge(<mongodb>, <dbconn>, "<-"),
+      edge(<zod>, <models>, "<-"),
+      edge(<models>, <dbconn>, "<--"),
+
+      let repoNode = (idx, label) => node(idx, label, width: 75pt, stroke: 1pt),
+
+      repoNode((2, 0.5), `UserRepo`),
+      repoNode((2, 1.5), `CourseRepo`),
+      repoNode((2, 2.5), `RequestRepo`),
+      node(enclose: ((2, 0.5), (2, 1.5), (2, 2.5)), stroke: black, inset: 10pt, snap: false, name: <repos>),
+      node((2, 3.5), `repos`),
+
+      edge(<dbconn>, (2, 0.5), "<--"),
+      edge(<dbconn>, (2, 1.5), "<--"),
+      edge(<dbconn>, (2, 2.5), "<--"),
+
+      let serviceNode = (idx, label) => node(idx, label, width: 95pt, stroke: 1pt),
+
+      serviceNode((4, 0), `UserService`),
+      serviceNode((4, 1), `CourseService`),
+      serviceNode((4, 2), `RequestService`),
+      node((4, 3), `NotificationService`, stroke: 1pt),
+      node(enclose: ((4, 0), (4, 1), (4, 2), (4, 3)), stroke: black, inset: 10pt, snap: false, name: <service>),
+      node((4, 4), `lib`),
+
+      edge(<repos>, (4, 0), "<--"),
+      edge(<repos>, (4, 1), "<--"),
+      edge(<repos>, (4, 2), "<--"),
+      edge(<repos>, (4, 3), "<--"),
+
+      node((5.2, 1.5), [(Server)]),
+      edge(<service>, (5.2, 1.5), "<.."),
+    )
+  ]
+] <fig-service-structure>
 
 === Server
 
@@ -300,6 +373,8 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 Testing is an essential part of the software development lifecycle. It helps ensure the correctness, reliability, and robustness of the system. We performed unit testing and integration testing on the *Service* package, and we planned to perform system testing on the whole system, including the *Server* and *Site* packages, in the future.
 
 === Service
+
+We implemented comprehensive tests using Bun's test framework. In tests, service instances are created similarly to the production environment. The key difference is that the tests use an in-memory MongoDB server rather than an external one. The tests cover all major APIs in the `lib` layer, including creating requests, responding to requests, and managing courses and users. Different user roles and permission cases are also tested to ensure users cannot access unauthorized data.
 
 === Server and Site
 
