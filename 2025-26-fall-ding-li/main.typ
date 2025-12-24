@@ -475,6 +475,10 @@ The project development plan is recorded and maintained in GitHub Projects: http
 
 = Conclusion
 
+CRS streamlines the handling of course administrative requests by replacing ad hoc email workflows with a structured, role-aware request--response system. Through an iterative development process, we implemented the functional objectives identified from student and instructor needs, delivered a production deployment, and validated the workflow through multiple demonstrations and evaluations.
+
+Going forward, we plan to extend CRS with initialization for courses at the beginning of each semester, and to strengthen end-to-end system testing across the *Server* and *Site* packages. With continued refinement driven by feedback and tracked issues, CRS can serve as a sustainable, open-source foundation for managing CSE course requests at scale.
+
 == Acknowledgements
 
 We would like to extend our sincere gratitude to our advisor, Dr. Yau Chat Tsoi, whose support and guidance have been fundamental to us.
