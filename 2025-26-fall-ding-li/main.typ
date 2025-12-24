@@ -285,34 +285,34 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 
 === Service
 
-The service module has four major parts: `db`, `models`, `repos`, and `lib`.
+The service module has four main parts: `db`, `models`, `repos`, and `lib`.
 
 / `db`: 
 
-  This part provides utility functions for connecting to the database and creating indexes. They are used in both testing and production. In addition, a type for the database collections is defined here. Later parts use this type to access the database in a type-safe way, without repeating boilerplate such as connecting to the database and retrieving collection handles.
+  This part provides utilities for connecting to the database and creating indexes. These are used in both testing and production. It also defines a type for the database collections. Other parts use this type to access the database in a type-safe way, without repeating boilerplate such as connecting to the database and retrieving collection handles.
 
 / `models`: 
 
   This part defines all data models used across the system. The three main models are _user_, _course_, and _request_. The _user_ and _course_ models are kept simple, following the data format in the ITSO system. For example, a user's ITSO email is used as their unique ID, and terms are denoted using a 4-digit code --- the first two digits denote the academic year, and the last two digits denote the term (Fall, Winter, Spring, and Summer). For instance, `2510` denotes 2025-26 Fall. In this way, data sharing between CRS and the ITSO system can be done more smoothly.
 
-  The _request_ model is more complex. All requests are expected to share some common fields (e.g., requester, status, and timestamps), while different request types may contain different additional fields. To provide a unified request interface while allowing new request types to be added in the future, we first define a `BaseRequest` schema that contains common request information. After that, specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, are constructed using the function `createRequestType`, which extends the base schema with a type literal and some additional metadata properties. Finally, the general request model `Request` is defined as a discriminated union of all specific request types. For each `Request` object, one can check the `type` field to determine the specific request type, and then access the corresponding metadata fields in a type-safe way.
+  The _request_ model is more complex. All requests are expected to share some common fields (e.g., requester, status, and timestamps), while different request types may contain different additional fields. To provide a uniform interface while still allowing new request types to be added in the future, we first define a `BaseRequest` schema that contains the common request information. Specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, are then constructed using the function `createRequestType`, which extends the base schema with a type literal and additional metadata fields. Finally, the general request model `Request` is defined as a discriminated union of all specific request types. For a `Request` object, we can check the `type` field to determine the specific request type and then access the corresponding metadata fields in a type-safe way.
 
 / `repos`: 
 
-  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (via queries) to implement operations such as retrieving requests and creating responses. All repos are implemented in a modular way so they can be easily reused by other repos or layers in the _service_ module.
+  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (through queries) to implement operations such as retrieving requests and creating responses. Repos are implemented modularly so they can be easily reused by other repos and layers within the service module.
 
 / `lib`: 
 
-  This layer is built on top of the `repos` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced via two helper functions, `assertCourseRole` and `assertClassRole`, whose arguments are set to different values for different purposes. After verifying permissions, the corresponding underlying `repos` are called.
+  This layer is built on top of the `repos` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced using two helper functions, `assertCourseRole` and `assertClassRole`, which are called with different arguments for different purposes. After permissions are verified, the corresponding repo operations are invoked.
 
-In the initial design of the system, authorization was done in the `server` module. The `service` module only contained the `repos` layer, which was named `lib` at that time. However, we later decided to move authorization into the `service` module for the following reasons:
+In the initial design of the system, authorization lived in the `server` module. At that time, the `service` module only contained what is now the `repos` layer (it was named `lib`). However, we later decided to move authorization into the `service` module for the following reasons:
 
-- The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modular design.
+- The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full workflow, including authorization. This ensures that changing the backend framework (e.g., from `tRPC` to something else) will not affect the permission system, which is a better modular design.
 - Putting authorization and other logic together in the `service` module makes it easier to write unit tests, where we care not only about the correctness of database interactions, but also about comprehensive coverage of permission cases.
 
-Moreover, the `repos` and `lib` layers are intentionally separated. This keeps the organization simpler and cleaner, and also allows internal components to call `repos` directly without going through authorization.
+Moreover, the `repos` and `lib` layers are intentionally separated. This keeps the structure simpler and cleaner, and it also allows internal components to call `repos` directly without going through authorization.
 
-@fig-service-structure illustrates the relationship of service modules.
+@fig-service-structure illustrates the relationships among the service submodules.
 
 #figure(
   caption: [
