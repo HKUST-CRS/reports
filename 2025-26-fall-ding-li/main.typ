@@ -285,7 +285,7 @@ The system is organized into three main modules (referred to as _packages_ in Ja
 
 === Service
 
-The service module has four major parts: `db`, `models`, `functions`, and `lib`.
+The service module has four major parts: `db`, `models`, `repos`, and `lib`.
 
 / `db`: 
 
@@ -297,20 +297,20 @@ The service module has four major parts: `db`, `models`, `functions`, and `lib`.
 
   The _request_ model is more complex. All requests are expected to share some common information (e.g., request type, status, and timestamps), while different request types may contain different fields. To provide a unified request interface while allowing new request types to be added in the future, we first define a `BaseRequest` schema that contains common request information. Specific request types, such as `SwapSectionRequest` and `DeadlineExtensionRequest`, extend this base schema with additional fields. Finally, we define a discriminated union `Request` schema by combining all request types.
 
-/ `functions`: 
+/ `repos`: 
 
-  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (via queries) to implement operations such as retrieving requests and creating responses. All functions are implemented in a modular way so they can be easily reused by other functions or layers in the _service_ module.
+  This layer implements most of the system's logic without considering authorization. It interacts with the database directly (via queries) to implement operations such as retrieving requests and creating responses. All repos are implemented in a modular way so they can be easily reused by other repos or layers in the _service_ module.
 
 / `lib`: 
 
-  This layer is built on top of the `functions` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced via two helper functions, `assertCourseRole` and `assertClassRole`, whose arguments are set to different values for different purposes. After verifying permissions, the corresponding underlying `functions` are called.
+  This layer is built on top of the `repos` layer and is intended to be used directly by the `server` module. It implements authorization checks for different user roles, as well as a notification service. Authorization is enforced via two helper functions, `assertCourseRole` and `assertClassRole`, whose arguments are set to different values for different purposes. After verifying permissions, the corresponding underlying `repos` are called.
 
-In the initial design of the system, authorization was done in the `server` module. The `service` module only contained the `functions` layer, which was named `lib` at that time. However, we later decided to move authorization into the `service` module for the following reasons:
+In the initial design of the system, authorization was done in the `server` module. The `service` module only contained the `repos` layer, which was named `lib` at that time. However, we later decided to move authorization into the `service` module for the following reasons:
 
 - The `service` module is supposed to contain all core logic of the system, which means that public functions in the module should encapsulate the full logic, including authorization. This ensures that changing the backend framework from `tRPC` to something else will not affect the permission system, which is considered a better modular design.
 - Putting authorization and other logic together in the `service` module makes it easier to write unit tests, where we care not only about the correctness of database interactions, but also about comprehensive coverage of permission cases.
 
-Moreover, the `functions` and `lib` layers are intentionally separated. This keeps the organization simpler and cleaner, and also allows internal components to call `functions` directly without going through authorization.
+Moreover, the `repos` and `lib` layers are intentionally separated. This keeps the organization simpler and cleaner, and also allows internal components to call `repos` directly without going through authorization.
 
 === Server
 
