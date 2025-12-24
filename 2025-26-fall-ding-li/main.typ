@@ -312,6 +312,58 @@ In the initial design of the system, authorization was done in the `server` modu
 
 Moreover, the `repos` and `lib` layers are intentionally separated. This keeps the organization simpler and cleaner, and also allows internal components to call `repos` directly without going through authorization.
 
+@fig-service-structure illustrates the relationship of service modules.
+
+#figure(
+  caption: [
+    The internal architecture of the *Service* package.
+  ],
+)[
+  #block(inset: 5mm)[
+    #diagram(
+      spacing: (9mm, 6mm),
+
+      node((-0.7, 1.5), [MongoDB], name: <mongodb>),
+      node((-0.7, 2.5), [Zod], name: <zod>),
+      node((0.5, 1.5), `db`, stroke: 1pt, name: <dbconn>),
+      node((0.5, 2.5), `models`, stroke: 1pt, name: <models>),
+
+      edge(<mongodb>, <dbconn>, "<-"),
+      edge(<zod>, <models>, "<-"),
+      edge(<models>, <dbconn>, "<--"),
+
+      let repoNode = (idx, label) => node(idx, label, width: 75pt, stroke: 1pt),
+
+      repoNode((2, 0.5), `UserRepo`),
+      repoNode((2, 1.5), `CourseRepo`),
+      repoNode((2, 2.5), `RequestRepo`),
+      node(enclose: ((2, 0.5), (2, 1.5), (2, 2.5)), stroke: black, inset: 10pt, snap: false, name: <repos>),
+      node((2, 3.5), `repos`),
+
+      edge(<dbconn>, (2, 0.5), "<--"),
+      edge(<dbconn>, (2, 1.5), "<--"),
+      edge(<dbconn>, (2, 2.5), "<--"),
+
+      let serviceNode = (idx, label) => node(idx, label, width: 95pt, stroke: 1pt),
+
+      serviceNode((4, 0), `UserService`),
+      serviceNode((4, 1), `CourseService`),
+      serviceNode((4, 2), `RequestService`),
+      node((4, 3), `NotificationService`, stroke: 1pt),
+      node(enclose: ((4, 0), (4, 1), (4, 2), (4, 3)), stroke: black, inset: 10pt, snap: false, name: <service>),
+      node((4, 4), `lib`),
+
+      edge(<repos>, (4, 0), "<--"),
+      edge(<repos>, (4, 1), "<--"),
+      edge(<repos>, (4, 2), "<--"),
+      edge(<repos>, (4, 3), "<--"),
+
+      node((5.2, 1.5), [(Server)]),
+      edge(<service>, (5.2, 1.5), "<.."),
+    )
+  ]
+] <fig-service-structure>
+
 === Server
 
 === Site
