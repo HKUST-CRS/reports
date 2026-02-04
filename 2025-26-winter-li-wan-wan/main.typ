@@ -201,8 +201,24 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
   Simon was a bit sick this week, so he did not do much study. He tried to fix a visual bug in the CRS system, and tried to study `.map`, `.filter`, and `.reduce` functions in JavaScript.
 
 === Roger's Experience
+/ 1st week:
+
+  Roger studied the core features of Node.js to gain a deeper understanding of the CRS framework's architecture. Given that Javascript orginally could only be excuted with browser, Node.js is a JavaScript runtime environment enables the execution of JavaScript on a local machine, facilitating server-side logic and development workflows.
+  
+  During this process, he explored the basic concept of Modules in Node.js by following online tutorial, which are crucial for maintaining a clean and scalable codebase. He learned how modularity allows developers to split code into distinct files using ES Modules (import/export), ensuring that different parts of the system, such as API routes and database logic, remain decoupled and reusable.
+  
+  Although Roger initially explored Node.js to solve the "how-to-run" issues, he found that extensive knowledge of module systems was not required for the initial setup.
+
+  Furthermore, Roger began learning TypeScript, a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches or spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability; by strictly defining data structures and variable types, developers can prevent a wide range of runtime errors, making the CRS project more robust and easier for team members to collaborate on and refactor.
+
+/ 2nd week:
+
+
+
 
 / 3rd week:
+
+  Roger decide to focus on the dark theme display issue of Dark Theme Mode posted in project's Github repo.
 
   Roger's progress during this period can be broken down into three phases: configuration, understanding, and study.
 
