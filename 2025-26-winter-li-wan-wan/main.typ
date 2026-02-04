@@ -165,6 +165,7 @@ The objectives were successfully achieved, with several enhancements and bug fix
 == Bugs
 // Simon's Question: Should I put the issue numbers here? Should I link to the issues in the Github repo? Should I put these fixes in the Bugs section or Enhancements section?
 === Visual Bugs
+
 / Request Form Alignment Issue (issue\#51):
 
   The request form had alignment issues where the "Class" fields were not properly aligned when there are many instructors, leading to a cluttered appearance. This was fixed by Simon, who adjusted the CSS styles to ensure consistent spacing and alignment of all form elements.
@@ -173,11 +174,18 @@ The objectives were successfully achieved, with several enhancements and bug fix
   // Suggestion: A figure showing After Fix here
 
 / Dark Theme Mode Inconsistency (issue\#56):
+  
   The dark theme mode had inconsistencies in the color scheme, where some elements did not switch to dark mode properly. Both Simon and Roger had tried to address this issue by reviewing the CSS variables.
 
   - Simon's solution:
-   / 1st Trial:For the general theme, Simon tried to sychronize the CSS variables used for `.dark` and `@media (prefers-color-scheme: dark)` selectors in `global.css`. Ensure thed CSS variables were consistent across both selectors to maintain a uniform appearance in dark mode. For the `TextType` object, Simon identified that some CSS variables were not being applied correctly in dark mode. He updated the CSS to use theme-adaptive variables for all relevant elements, ensuring a consistent appearance across the application.
-   / 2nd Trial: For the general theme, Simon adopted Harry's advice to use the pre-defined *shadcn/ui* dark mode classes to ensure consistency. By using `<ThemeProvider>` component, Simon ensured that the dark mode classes were applied consistently across the application. Also, `@media (prefers-color-scheme: dark)` selectors were removed from `global.css` for refactoring. For the `TextType` object, Simon kept the original solution from his 1st Trial.
+   
+   / 1st Trial:
+    
+    For the general theme, Simon tried to sychronize the CSS variables used for `.dark` and `@media (prefers-color-scheme: dark)` selectors in `global.css`. Ensure thed CSS variables were consistent across both selectors to maintain a uniform appearance in dark mode. For the `TextType` object, Simon identified that some CSS variables were not being applied correctly in dark mode. He updated the CSS to use theme-adaptive variables for all relevant elements, ensuring a consistent appearance across the application.
+
+   / 2nd Trial: 
+    
+    For the general theme, Simon adopted Harry's advice to use the pre-defined *shadcn/ui* dark mode classes to ensure consistency. By using `<ThemeProvider>` component, Simon ensured that the dark mode classes were applied consistently across the application. Also, `@media (prefers-color-scheme: dark)` selectors were removed from `global.css` for refactoring. For the `TextType` object, Simon kept the original solution from his 1st Trial.
 
   - Roger's solution:
   // Roger's part here
