@@ -163,7 +163,27 @@ The objectives were successfully achieved, with several enhancements and bug fix
 == Enhancements
 
 == Bugs
+// Simon's Question: Should I put the issue numbers here? Should I link to the issues in the Github repo? Should I put these fixes in the Bugs section or Enhancements section?
+=== Visual Bugs
+/ Request Form Alignment Issue (issue\#51):
 
+  The request form had alignment issues where the "Class" fields were not properly aligned when there are many instructors, leading to a cluttered appearance. This was fixed by Simon, who adjusted the CSS styles to ensure consistent spacing and alignment of all form elements.
+
+  // Suggestion: A figure showing Before Fix here
+  // Suggestion: A figure showing After Fix here
+
+/ Dark Theme Mode Inconsistency (issue\#56):
+  The dark theme mode had inconsistencies in the color scheme, where some elements did not switch to dark mode properly. Both Simon and Roger had tried to address this issue by reviewing the CSS variables.
+
+  - Simon's solution:
+   / 1st Trial:For the general theme, Simon tried to sychronize the CSS variables used for `.dark` and `@media (prefers-color-scheme: dark)` selectors in `global.css`. Ensure thed CSS variables were consistent across both selectors to maintain a uniform appearance in dark mode. For the `TextType` object, Simon identified that some CSS variables were not being applied correctly in dark mode. He updated the CSS to use theme-adaptive variables for all relevant elements, ensuring a consistent appearance across the application.
+   / 2nd Trial: For the general theme, Simon adopted Harry's advice to use the pre-defined *shadcn/ui* dark mode classes to ensure consistency. By using `<ThemeProvider>` component, Simon ensured that the dark mode classes were applied consistently across the application. Also, `@media (prefers-color-scheme: dark)` selectors were removed from `global.css` for refactoring. For the `TextType` object, Simon kept the original solution from his 1st Trial.
+
+  - Roger's solution:
+  // Roger's part here
+  
+  // Suggestion: A figure showing Before Fix here
+  // Suggestion: A figure showing After Fix here
 == Onboarding New Developers
 
 As part of the project, significant effort was dedicated to onboarding the new developers, Simon and Roger. This involved several activities. Initially, Harry provided an overview of the CRS system, and provided a set of TODOs for Simon and Roger to get started.
@@ -180,25 +200,26 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
 / 1st week: 
   
-  Simon studied the key differences between TypeScript and JavaScript, focusing on static versus dynamic type checking. TypeScript detects errors such as type mismatches, spelling mistakes, and undefined properties at compile time or during development, while JavaScript identifies them only at runtime. Bun was explored as an all-in-one JavaScript/TypeScript toolkit that executes `.ts` files directly without generating `.js` files and supports npm-compatible module installation.
+  Simon studied the key differences between *TypeScript* and *JavaScript*, focusing on static versus dynamic type checking. TypeScript detects errors such as type mismatches, spelling mistakes, and undefined properties at compile time or during development, while JavaScript identifies them only at runtime. *Bun* was explored as an all-in-one JavaScript/TypeScript toolkit that executes `.ts` files directly without generating `.js` files and supports npm-compatible module installation.
 
-  Simon also learned Docker fundamentals and applied them to resolve a local CRS project issue caused by a missing MongoDB instance. Running MongoDB via a Docker container enabled successful execution, though a minor hydration mismatch warning remains. Fundamental HTML and CSS syntax was also revised to reinforce front-end basics.
+  Simon also learned *Docker* fundamentals and applied them to resolve a local CRS project issue caused by a missing *MongoDB* instance. Running MongoDB via a Docker container enabled successful execution, though a minor hydration mismatch warning remains. Fundamental *HTML* and *CSS* syntax was also revised to reinforce front-end basics.
 
 / 2nd week: 
   
-  Simon continued advancing his TypeScript knowledge by exploring type constraints, interfaces, and their integration with functions, with a particular emphasis on web development scenarios. He also reviewed core JavaScript syntax, its interaction with the browser environment, fundamental HTTP methods (e.g., GET, POST), and common status codes (e.g., 200, 404). Additionally, Simon revised essential Git commands (e.g., init, branch, push) and their workflow with GitHub for effective version control.
+  Simon continued advancing his TypeScript knowledge by exploring *type constraints, interfaces, and their integration with functions*, with a particular emphasis on web development scenarios. He also reviewed core JavaScript syntax, its interaction with the browser environment, fundamental *HTTP methods* (e.g., `GET`, `POST`), and common status codes (e.g., `200`, `404`). Additionally, Simon revised essential *Git commands* (e.g., `init`, `branch`, `push`) and their workflow with GitHub for effective version control.
 
   In practice, Simon tried to address a dark mode display inconsistency by applying theme-adaptive variables across the relevant elements. This change resolved the visual bug in the local display. 
 
 / 3rd week:
 
-  Simon advanced his TypeScript proficiency by studying type narrowing techniques and generics, gaining a deeper understanding of how to create flexible and type-safe code structures. He also explored callback functions, Promises, and asynchronous functions in both JavaScript and TypeScript, focusing on handling asynchronous operations effectively in modern web development.
+  Simon advanced his TypeScript proficiency by studying *type narrowing techniques and generics*, gaining a deeper understanding of how to create flexible and type-safe code structures. He also explored *callback functions, Promises, and asynchronous functions* in both JavaScript and TypeScript, focusing on handling asynchronous operations effectively in modern web development.
 
-  In practice, Simon experimented with TypeScript by writing simple functions and using live-server to run them locally, observing their interactions with the browser environment. He then progressed to building a practice meeting arrangement web application by following a tutorial, incorporating TypeScript, React, Tailwind CSS, Next.js, shadcn/ui, basic routing concepts, and database integration with Neon DB for data storage and retrieval. Throughout these projects, he adopted GitHub Workflow to simulate an actual development process, uploading all work to GitHub for version control and collaboration. This ongoing project specifically serves to deepen his practical understanding of the components and workflows used in the actual CRS project.
+  // Simon's Question: For the practice project, I would like to place a link to my github repo, and a figure showing the project here
+  In practice, Simon experimented with TypeScript by writing simple functions and using live-server to run them locally, observing their interactions with the browser environment. He then progressed to building a practice meeting arrangement web application by following a tutorial, incorporating *TypeScript, React, Tailwind CSS, Next.js, shadcn/ui, basic routing concepts*, and database integration with *Neon DB* for data storage and retrieval. Throughout these projects, he adopted *GitHub Workflow* to simulate an actual development process, uploading all work to GitHub for version control and collaboration. This ongoing project specifically serves to deepen his practical understanding of the components and workflows used in the actual CRS project.
 
 / 4th week:
 
-  Simon was a bit sick this week, so he did not do much study. He tried to fix a visual bug in the CRS system, and tried to study `.map`, `.filter`, and `.reduce` functions in JavaScript.
+  Simon was a bit sick this week, so he did not do much study. He tried to fix a visual alignment bug in the CRS system, and tried to study `.map`, `.filter`, and `.reduce` functions in JavaScript.
 
 === Roger's Experience
 / 1st week:
