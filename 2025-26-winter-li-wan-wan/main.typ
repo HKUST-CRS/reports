@@ -191,7 +191,10 @@ The objectives were successfully achieved, with several enhancements and bug fix
   // Roger's part here
   
   // Suggestion: A figure showing Before Fix here
+
+
   // Suggestion: A figure showing After Fix here
+
 == Onboarding New Developers
 
 As part of the project, significant effort was dedicated to onboarding the new developers, Simon and Roger. This involved several activities. Initially, Harry provided an overview of the CRS system, and provided a set of TODOs for Simon and Roger to get started.
@@ -242,23 +245,41 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
 / 2nd week:
 
+  As this is the first time for Roger to use Github intensively during developing, he spent a week read documents and watch tutorial of the basic Github. Basically, Github is a platform for developers to sync their project with a managable works flow. The learning covers the following terminology:
 
+  1. Repository: It can be seem as one "project" that contain all relavant files. Github allows different features for developers to manage and contribute to repositories.
+  
+  2. Clone: Downloading all file contain in the repository into local machine.
 
+  3. Fork: Develepers could copy the orginal repository for them themselve to use.
+
+  4. Branch: Under one repository, developers could create branch for them to manage the folders, with puching, pulling, fetch, discarging changes features, except of impacting the main branch.
+
+  5. Merch: Developers in the org of the repository have access to merge suitable development branch into the main branch for project's enhancement.
+
+  6. Pull request: Developers who is not in the org of the repository could submit pull request which contain a branch (either under forked repository or orginal repository). The other developers could view the overall changes and give feedback to the pull request. The developer in the org could decide whether the request is suitible to merch.
+
+  After reading the above documenttation of Github, Roger configured the development environment with Simon's guidance. This included learning and setting up Bun, Docker, and MongoDB. Roger can now successfully run the system on a localhost using dummy data.
 
 / 3rd week:
 
-  Roger decide to focus on the dark theme display issue of Dark Theme Mode posted in project's Github repo.
+  After enviorment setting, Roger decide to focus on the dark theme display issue (issue\#56) of Dark Theme Mode posted in project's Github repository. 
 
-  Roger's progress during this period can be broken down into three phases: configuration, understanding, and study.
+  Roger's progress during this period can be broken down into two phases: understanding, and study.
 
-  In the first phase, Roger configured the development environment with Simon's guidance. This included learning and setting up GitHub, Bun, Docker, and MongoDB. Roger can now successfully run the system on a localhost using dummy data.
+  The first phase: Understanding. Roger started the codebase exploration of the project and analyzed Simon's Pull Requests to understand the project's architecture and implementation patterns. He identified the core tech stack that he should carefully study: TailwindCSS for styling and React for UI logic. 
 
-  In the second phase, Roger started the codebase exploration of the project and analyzed Simon's Pull Requests to understand the project's architecture and implementation patterns. He identified the core tech stack that he should carefully study: TailwindCSS for styling and React for UI logic. To practice, Roger implemented a manual dark theme toggle and began addressing the new request type issue. To practice, Roger intended to implement a manual dark theme toggle after addressing the new request type issue.
+  In the second phase, Roger first completed a React fundamentals tutorial (by Youtube channel, Programming with Mosh). This allow him to understand .tsx file structures and develop basic web application or features without the intensive use of Gemini. Then, he read the documentation about the basic feature of TailwindCss, such as, modifying font, differenct colour, block displays, buttons, and CSS variable. These feature is curcial for him to understand how to modify the web page theme selection based on system preference.
 
-  In the final phase, Roger completed a React fundamentals tutorial (by Youtube channel, Programming with Mosh). He can now understand .tsx file structures without the intensive use of Gemini.
+  After the above progross, Roger found that the implementation of a user manual theme toggling feature is strongly relevate to the codebase of the automatic theme toggling feature base. The goal of the upcoming days is comed to complete the new manual dark theme troggling feature and resolve the orginal dark mode display issues.
 
-  The goal of the upcoming days is to complete the new dark theme feature and resolve the new request issues within the next few days.
+/ 4th week:
 
+  This week is the actual development week for Roger. The development can be disturbuted to three part: Practise project, theme display issus resolving, and manual theme trogling button implementation.
+
+  The practise project explored the basic use of React and TailwindCSS. It is a single page that contain basic display of text, layout, and a button that change the theme.
+
+  
 = Conclusion
 
 == Acknowledgements
