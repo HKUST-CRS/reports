@@ -306,19 +306,27 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
   With the previous experience of the practice project, Simon tried to fix a visual alignment bug (Issue \#51) in the CRS system, and tried to study `.map`, `.filter`, and `.reduce` functions in JavaScript. In addition, Simon addressed the dark mode display inconsistency issue (Issue \#56) with the 2nd trial solution mentioned above.
 
 === Roger's Experience
-/ 1st week:
 
-  Roger studied the core features of Node.js to gain a deeper understanding of the CRS framework's architecture. Given that Javascript orginally could only be excuted with browser, Node.js is a JavaScript runtime environment enables the execution of JavaScript on a local machine, facilitating server-side logic and development workflows.
+Roger’s experience can be distributed to 4 Phrase: Free learning, exploring, targeted learning, and contributing.
+
+[one sub-title say: Phrase1: Free learning]
+In the very first stage, Roger reached out to Harry because he does not know how to start “running” the whole project. Harry advised a to-do learning list for him benefiting him to gain the necessary knowledge to solve that problem.
+
+Roger first studied the core features of Node.js and the basic syntax of TypeScript to gain a deeper understanding of the CRS framework's architecture. Secondly, he begans learning how to use Github in order to contribute project with a manageable workflow.
+
+Node.js is a JavaScript runtime environment that enables the execution of JavaScript on a local machine as Javascript originally could only be executed with a browser. This facilitates server-side logic and development workflows.
   
-  During this process, he explored the basic concept of Modules in Node.js by following online tutorial, which are crucial for maintaining a clean and scalable codebase. He learned how modularity allows developers to split code into distinct files using ES Modules (import/export), ensuring that different parts of the system, such as API routes and database logic, remain decoupled and reusable.
+During the process of learning Node.js., he also explored Modules in Node.js by following online tutorials, which are crucial for maintaining a clean and scalable codebase. He understood how modularity allows developers to split code into distinct files using ES Modules, ensuring that system parts like API routes or database logic, remain decoupled and reusable.
   
-  Although Roger initially explored Node.js to solve the "how-to-run" issues, he found that extensive knowledge of module systems was not required for the initial setup.
+Although Roger initially explored Node.js to solve the "how-to-run" issues, he found that extensive knowledge of module systems was not required for the initial setup.
 
-  Furthermore, Roger began learning TypeScript, a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches or spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability; by strictly defining data structures and variable types, developers can prevent a wide range of runtime errors, making the CRS project more robust and easier for team members to collaborate on and refactor.
+TypeScript, a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches or spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability. By defining data structures and variable types, developers can prevent a wide range of runtime errors, making the larger scaled project like CRS more easier for team members to collaborate on and refactor.
 
-/ 2nd week:
+Roger learned the knowledge of Node.js and TypeScript from Youtube tutorials, "Programming with Mash”. He viewed the series about Node.js and TypeScript and followed all practice material in order to gain the above knowledge.
 
-  As this is the first time for Roger to use Github intensively during developing, he spent a week read documents and watch tutorial of the basic Github. Basically, Github is a platform for developers to sync their project with a managable works flow. The learning covers the following terminology:
+As this is the first time for Roger to use Github intensively during development, he spent a week reading documents and asking Gemini about the basic use of Github. Basically, Github is a platform for developers to sync their project with a manageable work flow. 
+
+The learning covers the following terminology:
 
   1. Repository: It can be seem as one "project" that contain all relavant files. Github allows different features for developers to manage and contribute to repositories.
   
@@ -332,25 +340,40 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
   6. Pull request: Developers who is not in the org of the repository could submit pull request which contain a branch (either under forked repository or orginal repository). The other developers could view the overall changes and give feedback to the pull request. The developer in the org could decide whether the request is suitible to merch.
 
-  After reading the above documenttation of Github, Roger configured the development environment with Simon's guidance. This included learning and setting up Bun, Docker, and MongoDB. Roger can now successfully run the system on a localhost using dummy data.
+After reading the above documentation of Github, Roger started to explore the project and found the correct path of learning in order to contribute. He first configured the development environment with Simon's guidance. This included learning and setting up Bun, Docker, and MongoDB. After the configuration, he could successfully run the system on a localhost using dummy data.
 
-/ 3rd week:
+[one sub-title say: Phrase 2: Exploring]
+After learning some basic tech stack, Roger started the codebase exploration of the project and analyzed Simon's Pull Requests regarding to dark theme display issue (issue\#56, phrase 1) to continually understand the project's architecture and implementation patterns. Then, he identified the core tech stack that he should carefully study in the next learning pharse: TailwindCSS for styling and React for UI logic. He had also decided that his contribution would focus on this dark theme display issue (issue\#56) in this winter.
 
-  After enviorment setting, Roger decide to focus on the dark theme display issue (issue\#56) of Dark Theme Mode posted in project's Github repository. 
+[one sub-title say: Phrase 3: Targeted learning]
+As Roger defined TailwindCSS and React as the main tech stack to learn, Roger first completed a React fundamentals tutorial (also by Youtube channel, Programming with Mosh). This allows him to understand .tsx file structures and develop basic web applications or features without the intensive use of Gemini. Then, he read the documentation about the basic features of TailwindCss, such as, modifying font, different colour, block displays, buttons, and CSS variable. These features are crucial for him to understand how to modify the web page theme selection based on system preference.
 
-  Roger's progress during this period can be broken down into two phases: understanding, and study.
+After the above progress, Roger found that the implementation of a user manual theme toggling feature is strongly relevant to the codebase of the automatic theme toggling feature base. The goal of the upcoming days becomed to complete the new manual dark theme toggling feature and resolve the original dark mode display issues.
+ 
+[one sub-title say: Phrase 4: Contributing]
 
-  The first phase: Understanding. Roger started the codebase exploration of the project and analyzed Simon's Pull Requests to understand the project's architecture and implementation patterns. He identified the core tech stack that he should carefully study: Tailwind CSS for styling and React for UI logic. 
 
-  In the second phase, Roger first completed a React fundamentals tutorial (by Youtube channel, Programming with Mosh). This allow him to understand .tsx file structures and develop basic web application or features without the intensive use of Gemini. Then, he read the documentation about the basic feature of Tailwind CSS, such as, modifying font, differenct colour, block displays, buttons, and CSS variable. These feature is curcial for him to understand how to modify the web page theme selection based on system preference.
+This week is the actual development week for Roger. The development can be distributed to three part: Practice project, theme display issues resolving, and manual theme trolling button implementation.
 
-  After the above progross, Roger found that the implementation of a user manual theme toggling feature is strongly relevate to the codebase of the automatic theme toggling feature base. The goal of the upcoming days is comed to complete the new manual dark theme troggling feature and resolve the orginal dark mode display issues.
+The practice project explored the basic use of React and TailwindCSS. It is a single page that contains a basic display of text, layout, and a button that changes the theme.
 
-/ 4th week:
+The following are some pictures displaying the layout of the practice project.
 
-  This week is the actual development week for Roger. The development can be disturbuted to three part: Practise project, theme display issus resolving, and manual theme trogling button implementation.
 
-  The practise project explored the basic use of React and Tailwind CSS. It is a single page that contain basic display of text, layout, and a button that change the theme.
+First enter the page (with dark system theme):
+
+
+First enter the page (with light system theme):
+
+
+After pressing manual toggling theme (with dark system theme):
+ 
+
+The above picture shows the element in the page can display with different themes based on the system preferred theme. The button in the right-hand size will overwrite the origin system preferred theme to achieve a manual switching theme feature.
+
+The project is done by the step-by-step guidance by using the “guided learning mode” of Gemini. By sending a prompt: “I am a complete new-comer to React and TailWindCSS. Guide me to make a webpage in order to let me understand key features to build a basic webpage. Do not tell the answer directly, let me explore myself under guidance”, Gemini can guide me though different features by not just copying and pasting, but attempting to try each feature myself.
+
+After the practice project, the logic is moved to one branch of CRS repository in order to solve the (issue\#56) and the manual theme t feature. The detailed solution to (issue\#56) is stated at the enhancement part. 
 
   
 = Conclusion
