@@ -167,7 +167,6 @@ The objectives were successfully achieved, with several enhancements and bug fix
 === Visual Bugs
 
 / Request Form Alignment Issue (Issue \#51):
-
   @fig-issue-51 shows the request form had alignment issues where the "Class" fields were not properly aligned when there are many instructors, leading to a cluttered appearance. @fig-pr-63 shows the form after the fix implemented by Simon, who adjusted the Tailwind CSS classes, i.e., adding `items-start` to the `<Wrapper>`, which aligns all elements to the start of their containers in grid layout; and `row-span-3` to the instructor's shadcn/ui componenet `<FormItem>`, which allows the instructor field to span three rows in the grid, ensuring that it occupies sufficient vertical space and aligns properly with the other fields. This change improved the visual alignment of the form, making it more organized.
 
   // Suggestion: A figure showing Before Fix here
@@ -192,29 +191,10 @@ The objectives were successfully achieved, with several enhancements and bug fix
   The pull request link for this fix can be found here: #link("https://github.com/HKUST-CRS/crs/pull/63")[https://github.com/HKUST-CRS/crs/pull/63].
 
 / Dark Theme Mode Inconsistency (Issue \#56):
-  
   @fig-issue-56 shows the dark theme mode had inconsistencies in the color scheme, where some elements did not switch to dark mode properly. Both Simon and Roger had tried to address this issue by reviewing the CSS variables.
 
-  - Simon's solution:
-   
-   / 1st Trial:
-    
-    For the general theme, Simon tried to sychronize the CSS variables used for `.dark` and `@media (prefers-color-scheme: dark)` selectors in `global.css`. Ensure thed CSS variables were consistent across both selectors to maintain a uniform appearance in dark mode. For the `TextType` object which displays 'CRS Request System' with the typing effect, Simon identified that some CSS variables were not being applied correctly in dark mode. He updated the CSS to use theme-adaptive variables -- `var(--foreground)` for all relevant elements in three documents in `packages/site/app`, including `students-view.tsx`, `instructors-view.tsx`, and `./instructor/admin/[cid]/page.tsx`, ensuring a consistent appearance across the application.
-
-    The pull request link of the 1st Trial can be found here: #link("https://github.com/HKUST-CRS/crs/pull/61")[https://github.com/HKUST-CRS/crs/pull/61].
-
-   / 2nd Trial: 
-    
-    For the general theme, Simon adopted Harry's advice to use the pre-defined shadcn/ui dark mode classes to ensure consistency. By using `<ThemeProvider>` component imported from `next-themes` in `packages/site/app/layout.tsx`, Simon ensured that the dark mode classes were applied consistently across the application. Also, `@media (prefers-color-scheme: dark)` selectors were removed from `global.css` for refactoring. For the `TextType` object, Simon kept the original solution from his 1st Trial. @fig-pr-66 shows the final result after the 2nd Trial, where the dark theme mode is now consistent across the application, with all elements switching to dark mode properly.
-
-    The pull request link of the 2nd Trial can be found here: #link("https://github.com/HKUST-CRS/crs/pull/66")[https://github.com/HKUST-CRS/crs/pull/66].
-
-  - Roger's solution:
-  // Roger's part here
-  
-  // Suggestion: A figure showing Before Fix here
   #figure(
-    placement: bottom,
+    placement: none,
     caption: [
       Before Fix: The dark theme mode had inconsistencies in the color scheme, where some elements did not switch to dark mode properly.
     ]
@@ -223,16 +203,54 @@ The objectives were successfully achieved, with several enhancements and bug fix
   ] <fig-issue-56>
 
 
+ The enhancement of this issue can be organized into three phases. The initial and final phases are managed by the new developer, Simon, while the second phase is managed by another new developer, Roger.
+
+/ Phase 1 (Managed by Simon):
+For the general theme, Simon tried to synchronize the CSS variables used for `.dark` and `@media (prefers-color-scheme: dark)` selectors in `global.css`. Ensure the CSS variables were consistent across both selectors to maintain a uniform appearance in dark mode. For the `TextType` object which displays 'CRS Request System' with the typing effect, Simon identified that some CSS variables were not being applied correctly in dark mode. He updated the CSS to use theme-adaptive variables -- `var(--foreground)` for all relevant elements in three documents in `packages/site/app`, including `students-view.tsx`, `instructors-view.tsx`, and `./instructor/admin/[cid]/page.tsx`, ensuring a consistent appearance across the application.
+
+
+    The pull request link of the 1st Trial can be found here: #link("https://github.com/HKUST-CRS/crs/pull/61")[https://github.com/HKUST-CRS/crs/pull/61].
+
+/ Harry's Comment\:: Harry stated that directly editing `global.css` is not a good practice.
+
+/ Phase 2 (Managed by Roger):
+To adopted Harry's guide, Roger deleted the  `@media (prefers-color-scheme: dark)` selectors in `global.css` that were used to detect system themes and replaced it with an event listener `window.matchMedia('(prefers-color-scheme: dark)')`. By detecting the system theme, the logic will add a `dark` class list to the root and perform the change of the theme. The logic of theme changing and the event listener is implemented at one signal file called `ThemeProvider.tsx` and embellished in the `layout.tsx` file which is the outermost layer of the whole project. Thus, all pages of CRS could have a correct theme display. 
+
+Given that implementation of a manual theme change button is similar to managing an event handler, the logic of a manual theme change button also including in `ThemeProvider.tsx`. The button is placed at the right-hand side of the header, which allows users to override the system theme preference and switch themes manually.
+
+While the above solution successfully resolved the dark mode display inconsistency issue, it introduced a new issue called FOUC (Flash of Unstyled Content) issue, where the page briefly flashes the light theme before switching to dark mode when the system theme is set to dark. This is because the theme detection and application logic runs after the initial page load, causing a momentary display of the default light theme before applying the correct dark theme. To solve this issue, a blocking status script applied to ensure that the theme detection and application logic runs before the page content is rendered.
+
+In addition, Roger discovered that the `@media` selector in `global.css` have the highest priority in the CSS hierarch, which mean that the CSS variables defined in the `@media` selector will override any other CSS variables defined elsewhere. Thus, the manual theme change button will not work properly because the CSS variables defined in the `@media` selector will always override other CSS variables including those used for manual button. This is the reason why Harry commented that adding `@media` selector into `global.css` is not a good practice.
+
+
+
+
+
+
+The pull request link of the Phase 2 and all photos of before and after can be found here:
+#link("
+https://github.com/HKUST-CRS/crs/pull/64")[https://github.com/HKUST-CRS/crs/pull/64].
+
+The pull request link of the manual theme change button can be found here:
+#link("https://github.com/HKUST-CRS/crs/pull/65").[https://github.com/HKUST-CRS/crs/pull/65].
+
+/ Harry's comment\:: There is an external library that implements almost the same. We should avoid re-inventing wheels and use external library. 
+
+
+/ Phase 3 (Managed by Simon): 
+For the general theme, Simon adopted Harry's advice to use the pre-defined shadcn/ui dark mode classes to ensure consistency. By using `<ThemeProvider>` component imported from `next-themes` in `packages/site/app/layout.tsx`, Simon ensured that the dark mode classes were applied consistently across the application. Also, `@media (prefers-color-scheme: dark)` selectors were removed from `global.css` for refactoring. For the `TextType` object, Simon kept the original solution from his 1st Trial. @fig-pr-66 shows the final result after the 2nd Trial, where the dark theme mode is now consistent across the application, with all elements switching to dark mode properly.
+
+    The pull request link of the 2nd Trial can be found here: #link("https://github.com/HKUST-CRS/crs/pull/66")[https://github.com/HKUST-CRS/crs/pull/66].
+
   // Suggestion: A figure showing After Fix here
   #figure(
-    placement: bottom,
+    placement: none,
     caption: [
       After Fix: The dark theme mode is now consistent across the application, with all elements switching to dark mode properly.
     ]
   )[
     #image("figure/crs-pr-66.png")
   ] <fig-pr-66>
-
 == Onboarding New Developers
 
 As part of the project, significant effort was dedicated to onboarding the new developers, Simon and Roger. This involved several activities. Initially, Harry provided an overview of the CRS system, and provided a set of TODOs for Simon and Roger to get started.
@@ -307,73 +325,100 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
 === Roger's Experience
 
-Roger’s experience can be distributed to 4 Phrase: Free learning, exploring, targeted learning, and contributing.
+Roger’s experience is organized into four main phases: Initial Learning, Exploration, Targeted Skill Development, and Contribution.
 
-[one sub-title say: Phrase1: Free learning]
-In the very first stage, Roger reached out to Harry because he does not know how to start “running” the whole project. Harry advised a to-do learning list for him benefiting him to gain the necessary knowledge to solve that problem.
+/ Pharse 1\: Initial Learning:
 
-Roger first studied the core features of Node.js and the basic syntax of TypeScript to gain a deeper understanding of the CRS framework's architecture. Secondly, he begans learning how to use Github in order to contribute project with a manageable workflow.
+In the very first stage, Roger reached out to Harry because he did not know how to start running the whole project. Harry advised a to-do learning list to help him gain the necessary knowledge to solve that problem.
 
-Node.js is a JavaScript runtime environment that enables the execution of JavaScript on a local machine as Javascript originally could only be executed with a browser. This facilitates server-side logic and development workflows.
+Roger first studied the core features of Node.js and the basic syntax of TypeScript to gain a deeper understanding of the CRS framework's architecture. Secondly, he began learning how to use GitHub to contribute to the project with a manageable workflow.
+
+Node.js is a JavaScript runtime environment that enables the execution of JavaScript on a local machine, as JavaScript was originally designed only for the browser. This facilitates server-side logic and development workflows.
+
   
 During the process of learning Node.js., he also explored Modules in Node.js by following online tutorials, which are crucial for maintaining a clean and scalable codebase. He understood how modularity allows developers to split code into distinct files using ES Modules, ensuring that system parts like API routes or database logic, remain decoupled and reusable.
-  
-Although Roger initially explored Node.js to solve the "how-to-run" issues, he found that extensive knowledge of module systems was not required for the initial setup.
-
-TypeScript, a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches or spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability. By defining data structures and variable types, developers can prevent a wide range of runtime errors, making the larger scaled project like CRS more easier for team members to collaborate on and refactor.
-
-Roger learned the knowledge of Node.js and TypeScript from Youtube tutorials, "Programming with Mash”. He viewed the series about Node.js and TypeScript and followed all practice material in order to gain the above knowledge.
-
-As this is the first time for Roger to use Github intensively during development, he spent a week reading documents and asking Gemini about the basic use of Github. Basically, Github is a platform for developers to sync their project with a manageable work flow. 
-
-The learning covers the following terminology:
-
-  1. Repository: It can be seem as one "project" that contain all relavant files. Github allows different features for developers to manage and contribute to repositories.
-  
-  2. Clone: Downloading all file contain in the repository into local machine.
-
-  3. Fork: Develepers could copy the orginal repository for them themselve to use.
-
-  4. Branch: Under one repository, developers could create branch for them to manage the folders, with puching, pulling, fetch, discarging changes features, except of impacting the main branch.
-
-  5. Merch: Developers in the org of the repository have access to merge suitable development branch into the main branch for project's enhancement.
-
-  6. Pull request: Developers who is not in the org of the repository could submit pull request which contain a branch (either under forked repository or orginal repository). The other developers could view the overall changes and give feedback to the pull request. The developer in the org could decide whether the request is suitible to merch.
-
-After reading the above documentation of Github, Roger started to explore the project and found the correct path of learning in order to contribute. He first configured the development environment with Simon's guidance. This included learning and setting up Bun, Docker, and MongoDB. After the configuration, he could successfully run the system on a localhost using dummy data.
-
-[one sub-title say: Phrase 2: Exploring]
-After learning some basic tech stack, Roger started the codebase exploration of the project and analyzed Simon's Pull Requests regarding to dark theme display issue (issue\#56, phrase 1) to continually understand the project's architecture and implementation patterns. Then, he identified the core tech stack that he should carefully study in the next learning pharse: TailwindCSS for styling and React for UI logic. He had also decided that his contribution would focus on this dark theme display issue (issue\#56) in this winter.
-
-[one sub-title say: Phrase 3: Targeted learning]
-As Roger defined TailwindCSS and React as the main tech stack to learn, Roger first completed a React fundamentals tutorial (also by Youtube channel, Programming with Mosh). This allows him to understand .tsx file structures and develop basic web applications or features without the intensive use of Gemini. Then, he read the documentation about the basic features of TailwindCss, such as, modifying font, different colour, block displays, buttons, and CSS variable. These features are crucial for him to understand how to modify the web page theme selection based on system preference.
-
-After the above progress, Roger found that the implementation of a user manual theme toggling feature is strongly relevant to the codebase of the automatic theme toggling feature base. The goal of the upcoming days becomed to complete the new manual dark theme toggling feature and resolve the original dark mode display issues.
- 
-[one sub-title say: Phrase 4: Contributing]
+  During the process of learning Node.js, he also explored Modules by following online tutorials. These modules are crucial for maintaining a clean and scalable codebase. He gained an understanding of how modularity allows developers to split code into distinct files using ES Modules, ensuring that system parts, such as API routes or database logic, remain decoupled and reusable.
 
 
-This week is the actual development week for Roger. The development can be distributed to three part: Practice project, theme display issues resolving, and manual theme trolling button implementation.
-
-The practice project explored the basic use of React and TailwindCSS. It is a single page that contains a basic display of text, layout, and a button that changes the theme.
-
-The following are some pictures displaying the layout of the practice project.
+Although Roger initially explored Node.js to solve the project's startup issues, he found that extensive knowledge of module systems was not required for the initial configuration.
 
 
-First enter the page (with dark system theme):
+TypeScript is a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches and spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability. By defining data structures and variable types, developers can prevent a wide range of runtime errors, making large-scale projects like CRS easier for team members to collaborate on and refactor.
 
 
-First enter the page (with light system theme):
+Roger acquired his knowledge of Node.js and TypeScript from the YouTube tutorials, "Programming with Mosh." He completed the entire series and followed all practice materials to gain the necessary understanding.
 
 
-After pressing manual toggling theme (with dark system theme):
- 
+Since this was Roger's first intensive use of GitHub during development, he spent a week reading documentation and consulting Gemini about its basic use. GitHub is a platform designed for developers to synchronize their projects and manage a collaborative workflow.
 
-The above picture shows the element in the page can display with different themes based on the system preferred theme. The button in the right-hand size will overwrite the origin system preferred theme to achieve a manual switching theme feature.
 
-The project is done by the step-by-step guidance by using the “guided learning mode” of Gemini. By sending a prompt: “I am a complete new-comer to React and TailWindCSS. Guide me to make a webpage in order to let me understand key features to build a basic webpage. Do not tell the answer directly, let me explore myself under guidance”, Gemini can guide me though different features by not just copying and pasting, but attempting to try each feature myself.
+The learning covered the following terminology:
+Repository: It can be seen as a single project that contains all relevant files. GitHub provides various features for developers to manage and contribute to these repositories.
+Clone: The process of downloading all files contained in the repository to a local machine.
+Fork: Allows developers to copy the original repository for their own development and use.
+Branch: Within a repository, developers can create a branch to manage features, using commands like pushing, pulling, fetching, and discarding changes, without immediately impacting the main branch.
+Merge: Developers within the repository's organization have the access to integrate a suitable development branch into the main branch for project enhancement.
+Pull Request: Developers not belonging to the repository's organization can submit a pull request containing a branch (either from a forked or the original repository). Other developers can review the overall changes and provide feedback, and a developer in the organization decides whether the request is suitable for merging.
+After reviewing the GitHub documentation, Roger began exploring the project and identified the most effective learning path for his contribution. With Simon's guidance, he first configured the development environment, which involved learning and setting up Bun, Docker, and MongoDB. Following this setup, he was able to successfully run the system on a localhost using dummy data.
 
-After the practice project, the logic is moved to one branch of CRS repository in order to solve the (issue\#56) and the manual theme t feature. The detailed solution to (issue\#56) is stated at the enhancement part. 
+/ Phrase 2\: Exploring:
+Following his foundational training, Roger began exploring the project's codebase. He analyzed Simon's Pull Requests for the Dark Theme Display Issue (Issue \#56) to better understand the project's architecture and implementation patterns. Subsequently, he identified the key technologies for his next learning phase: TailwindCSS for styling and React for UI logic. He decided to focus his contribution for the winter on resolving this dark theme display issue (Issue \#56).
+
+/ Phrase 3\: Targeted Skill Development:
+Having defined TailwindCSS and React as the main technologies to learn, Roger first completed a React fundamentals tutorial (also by the YouTube channel, Programming with Mosh). This allowed him to understand .tsx file structures and develop basic web applications or features without intensive reliance on Gemini. He then studied the documentation for TailwindCSS's basic features, such as modifying fonts, colors, block displays, buttons, and CSS variables. These features were crucial for him to understand how to modify the web page theme selection based on system preference.
+
+
+Following this progress, Roger realized that the implementation of a user manual theme toggling feature was strongly relevant to the codebase of the automatic theme toggling feature. The goal for the upcoming days became to complete the new manual dark theme toggling feature and resolve the original dark mode display issues.
+
+/ Phrase 4\: Contributing:
+
+
+This week marks Roger's active development phase, which is divided into three key areas: a practice project, resolving theme display issues, and implementing the manual theme toggling button.
+
+
+The practice project involved exploring the basic use of React and TailwindCSS. It is a single-page application that features a basic display of text, layout, and a button to change the theme.
+
+
+The following are some pictures displaying the layout of the practice project:
+  #figure(
+    placement: none,
+    caption: [
+      First enter the page (with dark system theme)
+    ]
+  )[
+    #image("figure/chung-1.png")
+  ] <chung-1>
+
+
+
+  #figure(
+    placement: none,
+    caption: [
+      First enter the page (with light system theme)
+    ]
+  )[
+    #image("figure/chung-2.png")
+  ] <chung-2>
+
+
+
+
+  #figure(
+    placement: none,
+    caption: [
+      After pressing manual toggling theme (with dark system theme)
+
+    ]
+  )[
+    #image("figure/chung-3.png")
+  ] <chung-3>
+
+The above picture shows that the elements on the page can display different themes based on the system's preferred theme. The button on the right-hand side overrides the original system preference to achieve a manual theme switching feature.
+
+The project was completed with step-by-step guidance using Gemini's "guided learning mode." By using the prompt, “I am a complete newcomer to React and TailWindCSS. Guide me to make a webpage in order to let me understand key features to build a basic webpage. Do not tell the answer directly, let me explore myself under guidance,” Gemini provided guidance that encouraged Roger to explore different features rather than simply copying and pasting.
+
+
+Following the practice project, the logic was moved to a branch of the CRS repository to solve (issue #56) and implement the manual theme feature. The detailed solution for (issue #56) is documented in the enhancement section.
 
   
 = Conclusion
