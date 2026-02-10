@@ -330,22 +330,16 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
   Node.js is a JavaScript runtime environment that enables the execution of JavaScript on a local machine, as JavaScript was originally designed only for the browser. This facilitates server-side logic and development workflows.
 
-  
   During the process of learning Node.js., he also explored Modules in Node.js by following online tutorials, which are crucial for maintaining a clean and scalable codebase. He understood how modularity allows developers to split code into distinct files using ES Modules, ensuring that system parts like API routes or database logic, remain decoupled and reusable.
   During the process of learning Node.js, he also explored Modules by following online tutorials. These modules are crucial for maintaining a clean and scalable codebase. He gained an understanding of how modularity allows developers to split code into distinct files using ES Modules, ensuring that system parts, such as API routes or database logic, remain decoupled and reusable.
 
-
   Although Roger initially explored Node.js to solve the project's startup issues, he found that extensive knowledge of module systems was not required for the initial configuration.
-
 
   TypeScript is a typed superset of JavaScript. Unlike JavaScript, TypeScript enforces Static Type Checking, catching type mismatches and spelling errors during the development phase before the code is compiled into .js files. This approach greatly enhances long-term maintainability. By defining data structures and variable types, developers can prevent a wide range of runtime errors, making large-scale projects like CRS easier for team members to collaborate on and refactor.
 
-
   Roger acquired his knowledge of Node.js and TypeScript from the YouTube tutorials, "Programming with Mosh." He completed the entire series and followed all practice materials to gain the necessary understanding.
 
-
   Since this was Roger's first intensive use of GitHub during development, he spent a week reading documentation and consulting Gemini about its basic use. GitHub is a platform designed for developers to synchronize their projects and manage a collaborative workflow.
-
 
   The learning covered the following terminology:
   - Repository: It can be seen as a single project that contains all relevant files. GitHub provides various features for developers to manage and contribute to these repositories.
@@ -354,15 +348,16 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
   - Branch: Within a repository, developers can create a branch to manage features, using commands like pushing, pulling, fetching, and discarding changes, without immediately impacting the main branch.
   - Merge: Developers within the repository's organization have the access to integrate a suitable development branch into the main branch for project enhancement.
   - Pull Request: Developers not belonging to the repository's organization can submit a pull request containing a branch (either from a forked or the original repository). Other developers can review the overall changes and provide feedback, and a developer in the organization decides whether the request is suitable for merging.
+
   After reviewing the GitHub documentation, Roger began exploring the project and identified the most effective learning path for his contribution. With Simon's guidance, he first configured the development environment, which involved learning and setting up Bun, Docker, and MongoDB. Following this setup, he was able to successfully run the system on a localhost using dummy data.
 
 / Phase 2\: Exploring:
 
-  Following his foundational training, Roger began exploring the project's codebase. He analyzed Simon's Pull Requests for the Dark Theme Display Issue (Issue \#56) to better understand the project's architecture and implementation patterns. Subsequently, he identified the key technologies for his next learning phase: TailwindCSS for styling and React for UI logic. He decided to focus his contribution for the winter on resolving this dark theme display issue (Issue \#56).
+  Following his foundational training, Roger began exploring the project's codebase. He analyzed Simon's Pull Requests for the Dark Theme Display Issue (Issue \#56) to better understand the project's architecture and implementation patterns. Subsequently, he identified the key technologies for his next learning phase: Tailwind CSS for styling and React for UI logic. He decided to focus his contribution for the winter on resolving this dark theme display issue (Issue \#56).
 
 / Phase 3\: Targeted Skill Development:
 
-  Having defined TailwindCSS and React as the main technologies to learn, Roger first completed a React fundamentals tutorial (also by the YouTube channel, Programming with Mosh). This allowed him to understand .tsx file structures and develop basic web applications or features without intensive reliance on Gemini. He then studied the documentation for TailwindCSS's basic features, such as modifying fonts, colors, block displays, buttons, and CSS variables. These features were crucial for him to understand how to modify the web page theme selection based on system preference.
+  Having defined Tailwind CSS and React as the main technologies to learn, Roger first completed a React fundamentals tutorial (also by the YouTube channel, Programming with Mosh). This allowed him to understand .tsx file structures and develop basic web applications or features without intensive reliance on Gemini. He then studied the documentation for Tailwind CSS's basic features, such as modifying fonts, colors, block displays, buttons, and CSS variables. These features were crucial for him to understand how to modify the web page theme selection based on system preference.
 
   Following this progress, Roger realized that the implementation of a user manual theme toggling feature was strongly relevant to the codebase of the automatic theme toggling feature. The goal for the upcoming days became to complete the new manual dark theme toggling feature and resolve the original dark mode display issues.
 
@@ -370,42 +365,42 @@ Both Simon and Roger actively engaged in these activities, which helped them gai
 
   This week marks Roger's active development phase, which is divided into three key areas: a practice project, resolving theme display issues, and implementing the manual theme toggling button.
 
-  The practice project involved exploring the basic use of React and TailwindCSS. It is a single-page application that features a basic display of text, layout, and a button to change the theme.
+  The practice project involved exploring the basic use of React and Tailwind CSS. It is a single-page application that features a basic display of text, layout, and a button to change the theme.
 
   The following are some pictures displaying the layout of the practice project:
-    // #figure(
-    //   placement: none,
-    //   caption: [
-    //     First enter the page (with dark system theme)
-    //   ]
-    // )[
-    //   #image("figure/chung-1.png")
-    // ] <chung-1>
+    #figure(
+      placement: none,
+      caption: [
+        First enter the page (with dark system theme)
+      ]
+    )[
+      #image("figure/chung-1.png")
+    ] <chung-1>
 
-    // #figure(
-    //   placement: none,
-    //   caption: [
-    //     First enter the page (with light system theme)
-    //   ]
-    // )[
-    //   #image("figure/chung-2.png")
-    // ] <chung-2>
+    #figure(
+      placement: none,
+      caption: [
+        First enter the page (with light system theme)
+      ]
+    )[
+      #image("figure/chung-2.png")
+    ] <chung-2>
 
-    // #figure(
-    //   placement: none,
-    //   caption: [
-    //     After pressing manual toggling theme (with dark system theme)
+    #figure(
+      placement: none,
+      caption: [
+        After pressing manual toggling theme (with dark system theme)
 
-    //   ]
-    // )[
-    //   #image("figure/chung-3.png")
-    // ] <chung-3>
+      ]
+    )[
+      #image("figure/chung-3.png")
+    ] <chung-3>
 
   The above picture shows that the elements on the page can display different themes based on the system's preferred theme. The button on the right-hand side overrides the original system preference to achieve a manual theme switching feature.
 
-  The project was completed with step-by-step guidance using Gemini's "guided learning mode." By using the prompt, “I am a complete newcomer to React and TailWindCSS. Guide me to make a webpage in order to let me understand key features to build a basic webpage. Do not tell the answer directly, let me explore myself under guidance,” Gemini provided guidance that encouraged Roger to explore different features rather than simply copying and pasting.
+  The project was completed with step-by-step guidance using Gemini's "guided learning mode." By using the prompt, “I am a complete newcomer to React and Tailwind CSS. Guide me to make a webpage in order to let me understand key features to build a basic webpage. Do not tell the answer directly, let me explore myself under guidance,” Gemini provided guidance that encouraged Roger to explore different features rather than simply copying and pasting.
 
-  Following the practice project, the logic was moved to a branch of the CRS repository to solve (issue #56) and implement the manual theme feature. The detailed solution for (issue #56) is documented in the enhancement section.
+  Following the practice project, the logic was moved to a branch of the CRS repository to solve (issue \#56) and implement the manual theme feature. The detailed solution for (issue \#56) is documented in the enhancement section.
   
 = Conclusion
 
