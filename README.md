@@ -8,3 +8,4 @@ The rendered reports can be found at the [release page](https://github.com/HKUST
 
 - [2025-26 Fall. Independent Work. Yuyi Ding and Harry Li.](/2025-26-fall-ding-li)
 - [2025-26 Winter. Independent Work. Harry Li, Simon Wan, and Roger Wan.](/2025-26-winter-li-wan-wan)
+- [2025-26 Spring. Independent Work. Yat Fei Ng, Simon Wan, and Roger Wan.](/2025-26-spring-ng-wan-wan)
