@@ -2,8 +2,6 @@ name: Render
 
 on:
   push:
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -43,4 +41,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: render/*.pdf
-          tag_name: main
+          tag_name: ${{ github.ref_name }}
