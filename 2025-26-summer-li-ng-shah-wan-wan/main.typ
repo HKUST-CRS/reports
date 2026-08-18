@@ -1,9 +1,5 @@
 #import "@preview/cuti:0.4.0": fakebold
 
-// TODO placeholder: marks content that still needs to be written by the authors.
-// Replace each #todo[...] with real prose; the gray text is a reminder only.
-#let todo(body) = text(fill: rgb("#9ca3af"), style: "italic")[TODO: #body]
-
 #let project(
   title: "",
   authors: (),
@@ -153,7 +149,7 @@
   date: datetime.today().display("[month repr:long] [day], [year]"),
   logo: "../COMP_FYP_Logo_transparent_1200dpi.png",
   abstract: [
-    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable documented here is a thread-based conversation system for requests, tracked in Pull Request #134 (_Threads in CRS!_), which replaces the previous binary request--response model with an append-only activity thread, a normalized request lifecycle status, and new backend mutations for comments, responses, cancellations, and appeals. A follow-up update, planned as Pull Request #143, moves proof attachments from inline base64 storage into MongoDB GridFS in response to code review, together with a one-time database migration. #todo[Summarize the contributions of the other team members and revise once the term's work is finalized.]
+    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable documented here is a thread-based conversation system for requests, tracked in Pull Request #134 (_Threads in CRS!_), which replaces the previous binary request--response model with an append-only activity thread, a normalized request lifecycle status, and new backend mutations for comments, responses, cancellations, and appeals. A follow-up update, planned as Pull Request #143, moves proof attachments from inline base64 storage into MongoDB GridFS in response to code review, together with a one-time database migration.
   ]
 )
 
@@ -184,9 +180,9 @@ This report is for the Independent Work project _Even Further Development of CRS
 
 CRS is a system to streamline and manage students' course administrative requests for courses offered by the Computer Science and Engineering (CSE) department, such as swapping lab sections, excused absence from lab sessions, extending assignment deadlines, and appealing assignment grades. The system aims to provide a user-friendly interface for both students and instructors to facilitate efficient request--response handling and record-keeping.
 
-Continuing the previous Independent Work projects, which developed the initial version of CRS (2025-26 Fall), further developed it with enhancements and bug fixes (2025-26 Winter), and continued its development (2025-26 Spring), this Independent Work project focused on the even further development of CRS. The team consisted of Harry, the lead developer and one of the original developers of CRS, together with Yat Fei, Roger, and Simon from the previous term's team, and Dhairya, who newly joined the project this term. #todo[Adjust the team description if needed.]
+Continuing the previous Independent Work projects, which developed the initial version of CRS (2025-26 Fall), further developed it with enhancements and bug fixes (2025-26 Winter), and continued its development (2025-26 Spring), this Independent Work project focused on the even further development of CRS. The team consisted of Harry, the lead developer and one of the original developers of CRS, together with Yat Fei, Roger, and Simon from the previous term's team, and Dhairya, who newly joined the project this term.
 
-Since Dhairya was new to the project, a significant portion of his work in this term involved familiarizing himself with the codebase and the technologies used by the system. To get familiar with the project, Dhairya first studied the repository starting from the commit d52cec2e, which closed issue #issue(68) by fixing the CI build for pull requests authored by developers without write permission to the repository (#pr(129)). He then set up the local development environment and used the development seed script to quickly bootstrap a test course and users in the local database, which allowed him to run the system end to end and get used to its data model and workflows.
+Since Dhairya was new to the project, a significant portion of his work in this term involved familiarizing himself with the codebase and the technologies used by the system. To get familiar with the project, Dhairya first studied the repository starting from the commit d52cec2e, which closed issue #issue(68) by fixing the CI build for pull requests authored by developers without write permission to the repository (#pr(129)). He then set up the local development environment and wrote a seeding script that bootstraps a test course and users into the local database, which allowed him to host the system locally for testing and understand how CRS works under the hood.
 
 After the familiarization phase, Dhairya implemented the main deliverable documented in this report: a thread-based conversation system for requests, tracked in Pull Request _Threads in CRS!_ (#pr(134)). The thread system addresses the _Conversation System_ future work item identified in the conclusion of the 2025-26 Winter report, which noted that students currently cannot provide additional information on an existing request, and instructors cannot ask for clarification without rejecting the request and asking the student to submit a new one.
 
@@ -196,15 +192,11 @@ The objectives of this Independent Work project were as follows:
 - Fixing bugs in the existing CRS system tracked in the issue tracker.
 - Onboarding a new developer (Dhairya) to the project and helping him gain experience in web development.
 
-#todo[Add the objectives and contributions of the other team members.]
-
-At the time of writing, the thread system is under review (#pr(134)), and a follow-up pull request (#pr(143)) that addresses the remaining review comments --- moving proof attachments into GridFS and migrating the database to the thread schema --- has been drafted. #todo[Update this overview with the final state of the term, including any deployment or user feedback.]
+At the time of writing, the thread system is under review (#pr(134)), and a follow-up pull request (#pr(143)) that addresses the remaining review comments --- moving proof attachments into GridFS and migrating the database to the thread schema --- has been drafted.
 
 = Methodology
 
 This section introduces the methodologies in the Independent Work, including the tasks and workflow for designing and implementing the enhancements. For enhancements and bug fixes that are associated with a GitHub issue or PR, the number is linked in parentheses for reference.
-
-#todo[Add the methodology sections for the other team members' work.]
 
 == Thread System (#pr(134))
 
@@ -270,7 +262,7 @@ Additional changes in the PR include the following:
 - A development seed script (`pnpm seed`) was added to quickly set up a test course and user in the local database (commit 128a0a1).
 - Tests for the request service were reworked to cover thread mutations, status transitions, and legacy normalization.
 
-== Attachments in GridFS (#pr(143)) — Update to Review #todo[This subsection is drafted as Dhairya's update to Harry's review of #pr(134); it is planned to be part of a follow-up pull request, #pr(143), which is still in development. This section will be updated after the follow-up review.]
+== Attachments in GridFS (#pr(143)) — Update to Review
 
 In the second round of review, Harry raised two concerns about the internal design and implementation of the thread system:
 
@@ -285,7 +277,7 @@ In response, the following update has been drafted:
 - A one-time, idempotent database migration (`migrateRequests`) rewrites legacy request documents into the thread schema: it converts old response, cancel, and appeal entries into monomorphic comment and status entries, handles legacy detail and response fields, and moves inline base64 proof bytes into GridFS. Already-migrated documents are skipped.
 - A richer development seed script creates two users (a student and an instructor) and seeds requests covering every lifecycle state (_open_, _approved_, _rejected_, _appealed_, and _cancelled_) with realistic thread entries, using the real request service API.
 
-The update is pending a re-review from Harry, and this section will be updated accordingly.
+The update is planned as part of a follow-up pull request (#pr(143)), which is still in development and pending a re-review from Harry.
 
 == CI Build Fix (#issue(68), #pr(129))
 
@@ -295,7 +287,7 @@ The fix (commit d52cec2e, merged as #pr(129)) gates the Docker login step and th
 
 == Onboarding New Developers
 
-As part of the project, significant effort was dedicated to onboarding the new developer, Dhairya, and helping him gain experience in web development. The experience can be organized into four phases: Initial Learning, Exploration, Targeted Skill Development, and Contribution.
+As part of the project, significant effort was dedicated to onboarding the new developer, Dhairya, and helping him gain experience in web development. The experience can be organized into three phases: Initial Learning, Exploration, and Contribution.
 
 === Dhairya's Experience
 
@@ -303,17 +295,11 @@ As part of the project, significant effort was dedicated to onboarding the new d
 
   To get familiar with the project, Dhairya started with the commit d52cec2e, which closed issue #issue(68) by fixing the CI build for pull requests from contributors without write permission (#pr(129)). Working through this issue required understanding how the project is built, how its CI workflow is structured, and how contributions flow from a fork through a pull request into the main repository.
 
-  Dhairya then set up the local development environment and ran the system locally. To quickly get started, he used the development seed scripts (`seed.ts` and the richer `seed-data.ts`) to bootstrap a test course and test users in the local database, which allowed him to exercise the system end to end and get used to its data model and workflows.
-
 / Phase 2\: Exploration:
 
-  #todo[Describe what Dhairya studied to understand the CRS codebase, e.g., the three-package monorepo structure (service, server, site), the data models, the request--response flow, and the technologies used (TypeScript, Bun, MongoDB, tRPC, Zod, React/Next.js).]
+  Next, Dhairya set up the local development environment and hosted it locally for testing, so that he could run the system end to end and experiment with changes safely. He then read through the code line by line, following a request from the site form through the server router into the service layer and the database. To make this workflow faster and repeatable, he also wrote a seeding script that bootstraps a test course and users into the local database, which doubled as a hands-on way to understand how CRS works under the hood.
 
-/ Phase 3\: Targeted Skill Development:
-
-  #todo[Describe the targeted skills Dhairya developed for the main deliverable, e.g., the threading of a request lifecycle, atomic database updates, and the request thread UI.]
-
-/ Phase 4\: Contribution:
+/ Phase 3\: Contribution:
 
   In this phase, Dhairya implemented the main deliverable of the term, the thread system (#pr(134)). The work started with the initial thread-style lifecycle and its UI (commits 78baa84 and 09226b4), followed by fixes and a development seed script, and was reviewed by Harry in two rounds. Addressing the design review required a major refactor that folded the response model into the thread lifecycle (commit 8922590), simplifying the data model to monomorphic comment and status entries with a five-state lifecycle, and reworking the request thread UI accordingly. Addressing the internal design review led to the drafted update that moves proof attachments into GridFS and migrates the database to the thread schema (#pr(143)). Throughout the review process, Dhairya also triaged the findings of GitHub's Copilot code review, fixing the valid findings (for example, an unstable table sort comparator) and evaluating the false positives.
 
@@ -329,21 +315,16 @@ The work on the thread system was planned in several stages, which are reflected
 
 + *Follow-up* (ongoing). The remaining review comments are addressed by the drafted GridFS attachments update and the database migration, planned as #pr(143).
 
-#todo[Add the planning for the other team members' work, including any evaluations conducted during the term.]
-
 = Conclusion
 
-#todo[Write the conclusion: reflect on what was learned during the term, the state of the thread system (under review as #pr(134), with the GridFS update drafted as #pr(143)), and the experience gained in web development and working on an open-source project. Some potential future work items include:
+In this Independent Work project, the team continued the even further development of CRS. The main deliverable of the term was the thread system (#pr(134)), which replaced the binary request--response model with an append-only conversation thread, monomorphic comment and status entries, and a normalized five-state request lifecycle. The thread system is under review at the time of writing, and a follow-up pull request (#pr(143)) is being prepared to address the remaining review comments by moving proof attachments into GridFS and migrating the database to the thread schema.
 
-+ Further review iterations on the thread system, including the GridFS attachment storage and the database migration.
+For Dhairya, this term was also a first experience of working on a real-world codebase with an active upstream and a proper review culture. Starting from a small CI fix (commit d52cec2e), he became comfortable with the system by reading the code line by line and hosting it locally for testing, and went on to design, implement, and iterate on the thread system through two rounds of detailed code review, learning a great deal about full-stack web development, data modeling, and maintaining backward compatibility along the way.
 
-+ #todo[Add any other future work items.]
-
-+ #todo[Add any other future work items.]
-]
+Future work includes merging the thread system after the follow-up review, deploying it, and gathering feedback from students and instructors on the new conversation workflow.
 
 == Acknowledgements
 
 We would like to extend our sincere gratitude to our advisor, Dr. Yau Chat Tsoi, whose support and guidance have been invaluable to us.
 
-#todo[Add any other acknowledgements, e.g., LI, Yu Hong Harry, the lead developer of CRS, for his detailed code reviews and guidance throughout the development of the thread system.]
+We would also like to thank LI, Yu Hong Harry, the lead developer of CRS, for his detailed code reviews and guidance throughout the development of the thread system.
