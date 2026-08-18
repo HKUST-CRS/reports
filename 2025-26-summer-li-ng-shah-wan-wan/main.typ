@@ -149,7 +149,7 @@
   date: datetime.today().display("[month repr:long] [day], [year]"),
   logo: "../COMP_FYP_Logo_transparent_1200dpi.png",
   abstract: [
-    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable documented here is a thread-based conversation system for requests, tracked in Pull Request #134 (_Threads in CRS!_), which replaces the previous binary request--response model with an append-only activity thread, a normalized request lifecycle status, and new backend mutations for comments, responses, cancellations, and appeals. A follow-up update, planned as Pull Request #143, moves proof attachments from inline base64 storage into MongoDB GridFS in response to code review, together with a one-time database migration.
+    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable documented here is a thread-based conversation system for requests, tracked in Pull Request #134 (_Threads in CRS!_), which replaces the previous binary request--response model with an append-only activity thread, a normalized request lifecycle status, and new backend mutations for comments, responses, cancellations, and appeals. A follow-up update, pushed to the same pull request in response to code review, moves proof attachments from inline base64 storage into MongoDB GridFS and adds a one-time database migration to the thread schema.
   ]
 )
 
@@ -192,7 +192,7 @@ The objectives of this Independent Work project were as follows:
 - Fixing bugs in the existing CRS system tracked in the issue tracker.
 - Onboarding a new developer (Dhairya) to the project and helping him gain experience in web development.
 
-At the time of writing, the thread system is under review (#pr(134)), and a follow-up pull request (#pr(143)) that addresses the remaining review comments --- moving proof attachments into GridFS and migrating the database to the thread schema --- has been drafted.
+At the time of writing, the thread system is under review (#pr(134)), and the remaining review comments have been addressed in the same pull request by moving proof attachments into GridFS and adding a database migration to the thread schema.
 
 = Methodology
 
@@ -242,7 +242,7 @@ Following the review, the response model was folded into the thread lifecycle (c
 - A _comment entry_ carries text and optional proof documents. The initial reason and proof of a request are stored as the first comment entry of the thread.
 - A _status entry_ records a status change. The lifecycle status is one of five states: _open_, _approved_, _rejected_, _appealed_, and _cancelled_.
 
-The status of a request is denormalized on the document so that the request list can be queried efficiently, and it is updated atomically together with the append of the corresponding thread entry. Status changes are guarded by role and current state: only instructors can approve or reject, only the requester can cancel or appeal, an appeal is only possible from the _approved_ or _rejected_ states, and instructors may change an earlier decision. In the UI, superseded status entries (for example, a rejection that was later appealed and overturned) are rendered muted with a strikethrough and a "superseded" label, while the latest entry is shown at full contrast. @fig-pr134-improved-ui shows the thread view after addressing the design review.
+The status of a request is denormalized on the document so that the request list can be queried efficiently, and it is updated atomically together with the append of the corresponding thread entry. Status changes are guarded by role and current state: only instructors can approve or reject, only the requester can cancel or appeal, an appeal is only possible from the _approved_ or _rejected_ states, and instructors may change an earlier decision. In the UI, superseded status entries (for example, a rejection that was later appealed and overturned) are marked by striking through their status label and appending a "superseded" marker, keeping the audit history readable at full contrast. @fig-pr134-improved-ui shows the thread view after addressing the design review.
 
 #figure(
   placement: bottom,
@@ -262,22 +262,23 @@ Additional changes in the PR include the following:
 - A development seed script (`pnpm seed`) was added to quickly set up a test course and user in the local database (commit 128a0a1).
 - Tests for the request service were reworked to cover thread mutations, status transitions, and legacy normalization.
 
-== Attachments in GridFS (#pr(143)) — Update to Review
+== Attachments in GridFS — Update to Review
 
 In the second round of review, Harry raised two concerns about the internal design and implementation of the thread system:
 
 1. An adapter layer to keep the old and new schemas in sync is unnecessary and only creates a maintenance burden; the database should be migrated to match the thread schema instead.
 2. Because attachments now live on thread comments rather than on the request itself, a request can carry an unbounded number of attachments. Storing them as inline base64 in the document can exceed the maximum size of a MongoDB document, so attachments should be moved to MongoDB GridFS, storing a reference in the thread entries instead of the raw bytes, and the per-file size limit can be increased (for example, to 4 MiB).
 
-In response, the following update has been drafted:
+In response, the update was implemented and pushed to the pull request itself (commit 9ab5aa7, with a follow-up fix in f457689):
 
-- The `ProofFile` model now stores a GridFS object id together with a SHA-256 hash of the file, instead of inline base64 content. A separate `ProofUpload` type is used for input, and the per-file size limit was raised from 2 MiB to 4 MiB. A `proofs` GridFS bucket was added to the database connections, and a `ProofNotFoundError` was introduced.
-- The request repository now stores proof files in GridFS when a request is created, with orphan cleanup if a later step fails, and a service method downloads a proof file by id, exposed through a new `proofContent` query endpoint on the server.
-- The server's body size limit was raised to 32 MiB to accommodate the larger attachments.
-- A one-time, idempotent database migration (`migrateRequests`) rewrites legacy request documents into the thread schema: it converts old response, cancel, and appeal entries into monomorphic comment and status entries, handles legacy detail and response fields, and moves inline base64 proof bytes into GridFS. Already-migrated documents are skipped.
+- The `ProofFile` model now stores a GridFS object id together with the size and a SHA-256 hash of the file, instead of inline base64 content; the size and hash are derived server-side from the decoded bytes, the per-file size limit was raised from 2 MiB to 4 MiB and is enforced on the actual content, and the request signature commits to the file content via the stored hash. A separate `ProofUpload` type is used for input, and a `proofs` GridFS bucket was added to the database connections.
+- Proof content is fetched on demand by clients through a new `proofContent` query on the server, gated by ownership and class-view authorization. Uploads use a two-phase commit that rolls back partial writes if a later step fails, and the server's body size limit was raised to 32 MiB so that oversized payloads are rejected with a 413 during streaming.
+- The legacy adapter layer was dropped entirely: the repository now returns documents as-is with a simplified status guard, and legacy normalization (status values, entry shapes, and the old `details` field rewritten into an opening comment) moved into the migration.
+- A one-time, idempotent database migration (`migrateRequests`) rewrites legacy request documents into the thread schema: it converts old response, cancel, and appeal entries into monomorphic comment and status entries, moves inline base64 proof bytes into GridFS, and --- after rewriting --- deletes any GridFS file that no document references, so an interrupted run no longer accumulates orphans (commit f457689). Already-migrated documents are skipped, so the migration is safe to re-run.
+- The same update also addressed the inline UI review comments: a selection-token guard for asynchronous file reads that clears the previously accepted proof as soon as a new selection starts (including on validation and read failures), composer inputs disabled while a mutation is pending, superseded rows kept at full contrast, dark-mode contrast for the cancelled status, the "Decision" column and filter renamed to "Status", and status actions that attach proof without a remark now rejected explicitly instead of being silently discarded.
 - A richer development seed script creates two users (a student and an instructor) and seeds requests covering every lifecycle state (_open_, _approved_, _rejected_, _appealed_, and _cancelled_) with realistic thread entries, using the real request service API.
 
-The update is planned as part of a follow-up pull request (#pr(143)), which is still in development and pending a re-review from Harry.
+Deploying the update has a strict ordering --- stop the old server, run the migration once (`cd packages/service && bun run scripts/migrate.ts`), then start the new server --- and a mongodump is recommended beforehand as a precaution. The update is verified by typechecking, linting, and the service test suite (96 tests), and is awaiting Harry's re-review at the time of writing.
 
 == CI Build Fix (#issue(68), #pr(129))
 
@@ -301,7 +302,7 @@ As part of the project, significant effort was dedicated to onboarding the new d
 
 / Phase 3\: Contribution:
 
-  In this phase, Dhairya implemented the main deliverable of the term, the thread system (#pr(134)). The work started with the initial thread-style lifecycle and its UI (commits 78baa84 and 09226b4), followed by fixes and a development seed script, and was reviewed by Harry in two rounds. Addressing the design review required a major refactor that folded the response model into the thread lifecycle (commit 8922590), simplifying the data model to monomorphic comment and status entries with a five-state lifecycle, and reworking the request thread UI accordingly. Addressing the internal design review led to the drafted update that moves proof attachments into GridFS and migrates the database to the thread schema (#pr(143)). Throughout the review process, Dhairya also triaged the findings of GitHub's Copilot code review, fixing the valid findings (for example, an unstable table sort comparator) and evaluating the false positives.
+  In this phase, Dhairya implemented the main deliverable of the term, the thread system (#pr(134)). The work started with the initial thread-style lifecycle and its UI (commits 78baa84 and 09226b4), followed by fixes and a development seed script, and was reviewed by Harry in two rounds. Addressing the design review required a major refactor that folded the response model into the thread lifecycle (commit 8922590), simplifying the data model to monomorphic comment and status entries with a five-state lifecycle, and reworking the request thread UI accordingly. Addressing the internal design review led to the update that moves proof attachments into GridFS and migrates the database to the thread schema (commits 9ab5aa7 and f457689). Throughout the review process, Dhairya also triaged the findings of GitHub's Copilot code review, fixing the valid findings (for example, an unstable table sort comparator) and evaluating the false positives.
 
 = Planning
 
@@ -313,15 +314,15 @@ The work on the thread system was planned in several stages, which are reflected
 
 + *Review and Refactor* (August). Two review rounds from Harry led to the fix commits addressing review findings (ea3166f, ff9700c) and the major refactor that folded the response model into the thread lifecycle (8922590), followed by UI improvements for status changes (cbd2c86).
 
-+ *Follow-up* (ongoing). The remaining review comments are addressed by the drafted GridFS attachments update and the database migration, planned as #pr(143).
++ *Follow-up* (August). The remaining review comments were addressed directly in the pull request: the GridFS attachments update and the database migration (commit 9ab5aa7), followed by a fix for stale proof selection and orphaned GridFS sweeping (f457689). The pull request is awaiting final review.
 
 = Conclusion
 
-In this Independent Work project, the team continued the even further development of CRS. The main deliverable of the term was the thread system (#pr(134)), which replaced the binary request--response model with an append-only conversation thread, monomorphic comment and status entries, and a normalized five-state request lifecycle. The thread system is under review at the time of writing, and a follow-up pull request (#pr(143)) is being prepared to address the remaining review comments by moving proof attachments into GridFS and migrating the database to the thread schema.
+In this Independent Work project, the team continued the even further development of CRS. The main deliverable of the term was the thread system (#pr(134)), which replaced the binary request--response model with an append-only conversation thread, monomorphic comment and status entries, and a normalized five-state request lifecycle. The thread system is under review at the time of writing; the review comments have been addressed within the pull request, including the move of proof attachments into GridFS and a database migration to the thread schema.
 
 For Dhairya, this term was also a first experience of working on a real-world codebase with an active upstream and a proper review culture. Starting from a small CI fix (commit d52cec2e), he became comfortable with the system by reading the code line by line and hosting it locally for testing, and went on to design, implement, and iterate on the thread system through two rounds of detailed code review, learning a great deal about full-stack web development, data modeling, and maintaining backward compatibility along the way.
 
-Future work includes merging the thread system after the follow-up review, deploying it, and gathering feedback from students and instructors on the new conversation workflow.
+Future work includes merging the thread system after the final review, deploying it (running the database migration with its strict ordering), and gathering feedback from students and instructors on the new conversation workflow.
 
 == Acknowledgements
 
