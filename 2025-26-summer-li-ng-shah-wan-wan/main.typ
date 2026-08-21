@@ -252,7 +252,7 @@ Harry's work in this term extended the system at these existing seams instead of
 
 == Thread System (#pr(134))
 
-The _thread system_, introduces a thread-based conversation model for requests, replacing the previous binary request/response model.
+The _thread system_ introduces a thread-based conversation model for requests, replacing the previous binary request/response model.
 
 In the old model, a request was created once and could receive at most one response (approve or reject with optional remarks) from an instructor. This was restrictive in several ways: a student could not provide additional information on an existing request, an instructor could not ask for clarification or change a decision after submitting it, and there was no built-in notion of cancelling a request or appealing a decision. These limitations were identified as future work (_Conversation System_) in the 2025-26 Winter report.
 
@@ -291,7 +291,7 @@ Harry reviewed this design and suggested a cleaner model:
 - The thread should not be frozen once a request is cancelled, and an instructor should be able to change a decision after submitting one; with this, an appeal is no different from a comment, though an explicit _appealed_ status is still useful so that instructors can see at a glance which requests are pending their decision.
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The initial design of the request thread view: the actions are separated from the thread in an "Actions" area with three buttons.
   ]
@@ -300,7 +300,7 @@ Harry reviewed this design and suggested a cleaner model:
 ] <fig-pr134-actions-area>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     A reference screenshot from the design review, illustrating the suggested GitHub-thread style in which the action buttons sit under a persistent text box.
   ]
@@ -318,7 +318,7 @@ Following the review, the response model was folded into the thread lifecycle (c
 The status of a request is denormalized on the document so that the request list can be queried efficiently, and it is updated atomically together with the append of the corresponding thread entry. Status changes are guarded by role and current state: only instructors can approve or reject, only the requester can cancel or appeal, an appeal is only possible from the _approved_ or _rejected_ states, and instructors may change an earlier decision. In the UI, superseded status entries (for example, a rejection that was later appealed and overturned) are marked by striking through their status label and appending a "superseded" marker, keeping the audit history readable at full contrast. @fig-pr134-improved-ui shows the thread view after addressing the design review.
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The request thread view after addressing the design review: a persistent composer with role- and status-dependent action buttons ("Comment", "Approve", "Reject", "Appeal", "Cancel") under the thread.
   ]
