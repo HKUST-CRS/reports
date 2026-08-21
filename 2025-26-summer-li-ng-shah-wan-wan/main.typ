@@ -166,7 +166,7 @@
   date: datetime.today().display("[month repr:long] [day], [year]"),
   logo: "../COMP_FYP_Logo_transparent_1200dpi.png",
   abstract: [
-    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable is a thread-based conversation system for requests (#pr(134)), which replaces the previous binary request--response model with an append-only activity thread and a normalized request lifecycle. The project also delivered automatic course setup from the UST Archive schedule (#pr(137)), stronger request validation and user-interface refinements (#pr(139)), and a reproducible local MongoDB and development-authentication environment (#pr(140)). Additional site-facing work included request-form UX fixes for assessment due times and deadline-extension calendars (#pr(108), #pr(119)), and an About page with project introduction, developer credits, and a downloadable third-party license notice (#pr(142)). In addition to implementing these enhancements, Harry coordinated the project and provided the architectural and code reviews that led the thread system to use monomorphic entries, MongoDB GridFS, and an explicit database migration.
+    This report documents the Independent Work project _Even Further Development of CRS_, where CRS stands for the _CSE Request System_ --- a web-based platform that streamlines course administrative requests for courses offered by the Computer Science and Engineering (CSE) department at HKUST. Building upon the initial version of the system and the further development carried out in the previous Independent Work projects, this term continued the development of CRS with a team of five developers. The main deliverable is a thread-based conversation system for requests (#pr(134)), which replaces the previous binary request--response model with an append-only activity thread and a normalized request lifecycle. In addition, a new _Assignment Appeal_ request type was developed, tracked in Pull Request #pr(141), which lets a student appeal the grade of a graded assignment in the normal request thread. The project also delivered automatic course setup from the UST Archive schedule (#pr(137)), stronger request validation and user-interface refinements (#pr(139)), and a reproducible local MongoDB and development-authentication environment (#pr(140)). Additional site-facing work included request-form UX fixes for assessment due times and deadline-extension calendars (#pr(108), #pr(119)), and an About page with project introduction, developer credits, and a downloadable third-party license notice (#pr(142)). In addition to implementing these enhancements, Harry coordinated the project and provided the architectural and code reviews that led the thread system to use monomorphic entries, MongoDB GridFS, and an explicit database migration.
   ]
 )
 
@@ -184,7 +184,7 @@
 
 = Introduction
 
-This report is for the Independent Work project _Even Further Development of CRS_, where CRS is an abbreviation for the _CSE Request System_. This project was developed by LI, Yu Hong Harry (Harry), NG, Yat Fei, SHAH, Dhairya Pankaj (Dhairya), WAN, Chi Chung (Roger), and WAN, Yiu Wai (Simon) under the supervision of Dr. Yau Chat Tsoi (Desmond).
+This report is for the Independent Work project _Even Further Development of CRS_, where CRS is an abbreviation for the _CSE Request System_. This project was developed by LI, Yu Hong Harry (Harry), NG, Yat Fei (Ellis), SHAH, Dhairya Pankaj (Dhairya), WAN, Chi Chung (Roger), and WAN, Yiu Wai (Simon) under the supervision of Dr. Yau Chat Tsoi (Desmond).
 
 == Overview
 
@@ -199,6 +199,8 @@ Simon contributed request-form and calendar UX improvements during the Spring te
 Since Dhairya was new to the project, a significant portion of his work in this term involved familiarizing himself with the codebase and the technologies used by the system. To get familiar with the project, Dhairya first studied the repository starting from the commit #commit("d52cec2e"), which closed issue #issue(68) by fixing the CI build for pull requests authored by developers without write permission to the repository (#pr(129)). He then set up the local development environment and wrote a seeding script that bootstraps a test course and users into the local database, which allowed him to host the system locally for testing and understand how CRS works under the hood.
 
 After the familiarization phase, Dhairya implemented his main deliverable, a thread-based conversation system for requests, tracked in Pull Request _Threads in CRS!_ (#pr(134)). The thread system addresses the _Conversation System_ future work item identified in the conclusion of the 2025-26 Winter report, which noted that students currently cannot provide additional information on an existing request, and instructors cannot ask for clarification without rejecting the request and asking the student to submit a new one.
+
+In parallel, Yat Fei developed a second deliverable: a new _Assignment Appeal_ request type, tracked in Pull Request #pr(141). The feature addresses the need, first raised in Issue #issue(93), for a structured channel through which a student can appeal the grade of an assignment once it is graded. Building on the thread-based request system, a student can file an appeal for a graded assignment with a reason and supporting documents, and the appeal is discussed and decided in the request thread by the responsible lecturers and TAs.
 
 The objectives of this Independent Work project were as follows:
 
@@ -509,6 +511,286 @@ The work was managed through milestones rather than a single final hand-off. Har
 
 The thread-system review was the main technical coordination task. The first round changed both the interaction model and the domain model; the second required GridFS and an explicit migration. The inline review then covered asynchronous file-selection races, edits during pending mutations, proof-only status actions, dark-mode contrast, readable audit history, and consistent status terminology. These findings were resolved in #pr(134) before it was merged.
 
+== Assignment Appeal (#issue(93), #pr(135) (discarded) -> #pr(141))
+
+A second deliverable of this term was a new _Assignment Appeal_ request type, developed by Yat Fei. The feature addresses a need first raised in Issue #issue(93): after an assignment is graded, a student who believes the marking is wrong has no structured channel to raise the issue.
+
+=== Design Evolution: From a Standalone Chat to a Request Type
+
+The Assignment Appeal feature went through two designs this term. It was first designed and implemented as a standalone chat-style area, tracked in Pull Request #pr(135), and was then, after a review of that branch, rebuilt as a request type on the thread-based request system, tracked in Pull Request #pr(141). The two versions are documented in turn: the standalone version first, and the request-type version after it.
+
+In a review of the branch, we found that the standalone chat-style area overlapped with the thread system in #pr(134) --- it ran a second conversation model, a second set of pages, and a second notification path in parallel to the request system. Harry suggested rebuilding the appeal as a request type on the thread-based request system. An assignment appeal is just another kind of request: a student submits it with a reason and supporting documents, the responsible staff discuss it, and they approve or reject it. By riding the existing request flow, the appeal reuses the thread UI, the status lifecycle, and the email plumbing; what is new is the participant-scoped access model, the creation gate, and the appeal-specific notification and decision rules. The standalone design was therefore rejected and Pull Request #pr(135) was closed, and the appeal was rebuilt as a request type on top of Pull Request #pr(134); the old branch was kept for reference and superseded.
+
+=== Design of the Standalone Chat (#pr(135))
+
+The appeal was designed as its own chat-style area rather than a request type. The separation was deliberate, motivated by the appeal list's readability: keeping appeals in a standalone area gathered every appeal into a single dedicated list, and each entry could be rendered in a compact, at-a-glance structure --- the course (with term), the appealed assignment, the creation datetime, and the status, for example *[COMP 2011 (2025-26 Fall) · Assignment 1 · Aug 19, 14:30 · open]*. Integrating the appeal into the general request table, by contrast, would have been less legible: the request list has no assignment column, so an assignment column added to accommodate appeals would be empty for every non-assignment request type.
+
+From the home page, a "My Appeals" button opens the appeal list page (@fig-pr135-appeal-list-nav), which gathers every appeal into a single compact list (@fig-appeal-chat-list).
+
+#figure(
+  placement: bottom,
+  caption: [
+    The home page with a "My Appeals" button, which opens the appeal list page of the standalone appeal area.
+  ]
+)[
+  #image("figure/pr135-button-to-appeal-list.png", width: 100%)
+] <fig-pr135-appeal-list-nav>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The "My Appeals" list page of the first, discarded design: a standalone chat-style area with its own pages, tracked in Pull Request #pr(135). Each entry shows the course (with term), the appealed assignment, the creation datetime, and the status.
+  ]
+)[
+  #image("figure/pr135-appeal-list.png", width: 100%)
+] <fig-appeal-chat-list>
+
+The standalone design is as follows:
+
++ *A chat conversation, not a request.* An appeal is stored in its own `appeals` collection as a conversation document --- one per course, assignment, and student --- holding the opening message, the message history, the participant list, and the appeal status. In the interface, an appeal opens into a WhatsApp-style chat thread with a pinned composer, distinct from the request thread view (@fig-appeal-chat-bubbles).
+
+  #figure(
+    placement: bottom,
+    caption: [
+      The chat thread of the first design, with WhatsApp-style message bubbles, sender role badges, and a pinned message composer.
+    ]
+  )[
+    #image("figure/pr135-appeal-chat-bubbles.png", width: 100%)
+  ] <fig-appeal-chat-bubbles>
+
++ *A graded-assignment creation gate.* A student can open an appeal only for a course they are enrolled in and an assignment that exists and is graded, with at most one appeal allowed per course, assignment, and student.
+
++ *Frozen participants.* The participant list is resolved at opening as the appealing student, the assignment's responsible TAs, and the lecturers of the student's lecture section, and is frozen thereafter; the only way to add a participant afterwards is by invitation. Access is participant-only, with no admin or sudoer escape hatch.
+
++ *Invitation.* A participating instructor or course admin can invite another instructor or observer of the course into the appeal; the invitee is emailed and gains view and post access.
+
++ *Role-stamped messages.* Each message shows the sender's identity and a role badge (Student / TA / Lecturer / Instructor / Observer / Admin) stamped at post time. The course-enrollment role takes priority, and two appeal-specific roles cover staff with no course enrollment --- a TA of the appealed assignment and a lecturer of the student's section --- so a single account can act as different roles when testing. Messages may carry file and image attachments stored inline as base64, at most 2 MiB each and 4 per message.
+
++ *A closing flow.* An instructor or course admin can propose a closing result, which the student sees with *Agree* / *Decline* buttons: agreement closes the appeal and a system message records the decision, while decline keeps the appeal open for discussion. Closed appeals reject further messages, and the final result is shown on the appeal list and the thread header.
+
++ *Notifications.* Opening an appeal emails the responsible TAs and lecturers (but not the student), and inviting a participant emails the invitee, through dedicated email templates.
+
+=== Implementation of the Standalone Chat (#pr(135))
+
+The standalone design was implemented in full as a working feature (35 files, about 3,100 added lines). The main changes are as follows.
+
+==== Service
+
+In the _service_ package (the data models and business logic):
+
+- A new `appeals` MongoDB collection stores each appeal as a chat conversation rather than a request --- one document per course, assignment, and student, carrying the opening message, the message history, the frozen participant list, and the open/closed state --- alongside new `Appeal` and `AppealRole` models and a `RepoAppeal` repository. The `AppealRole` model extends the system roles with `ta` and `lecturer`, the two staff categories that hold no course enrollment.
+- The `Course` model gains four optional fields: `assignments[].state` (`"open"`, `"closed"`, or `"graded"`) and `assignments[].tas`, together with `sections[].type` and `sections[].lecturers`. All are optional so that existing documents and other contributors' fixtures are unaffected.
+- A new `AppealService` implements the business logic. `createAppeal` checks the student's enrollment and the graded-assignment gate, then resolves and freezes the participant list. `getAppeal`, `postMessage`, and `getAppealParticipants` gate access on the participant list. `inviteParticipant` lets an instructor or admin invite an instructor or observer of the course. The closing flow (`requestClose`, `agreeClose`, `declineClose`) implements the propose / agree / decline lifecycle, recording a system message on each student decision.
+- Message roles are resolved at post time as a snapshot, with the course-enrollment role taking priority, and stored on the message.
+- The notification service adds `notifyNewAppeal` and `notifyAppealInvite`, emailing the responsible TAs and lecturers on open (not the student) and the invitee on invitation, through the new `new_appeal` and `appeal_invite` email templates.
+
+==== Server
+
+In the _server_ package (the tRPC layer), a new `appeal` router exposes `get`, `list`, `getParticipants`, `create`, `post`, `invite`, `requestClose`, `agreeClose`, and `declineClose`, and the user router gains name resolution for participant lists.
+
+==== Site
+
+In the _site_ package (the React/Next.js frontend):
+
+- New pages under `app/appeal/**` provide the "My Appeals" list page, a page to create an appeal, the chat thread page, and a participant page, backed by components under `components/appeal/**`.
+- The "My Appeals" list renders each appeal as a compact entry showing the course (with term), the appealed assignment, the creation datetime, the status, and any proposed or final result.
+- The create-appeal form lets a student pick an enrolled course and a graded assignment and write the opening message (@fig-pr135-appeal-request-form).
+
+#figure(
+  placement: bottom,
+  caption: [
+    The create-appeal form: a student picks an enrolled course and a graded assignment and writes the opening message.
+  ]
+)[
+  #image("figure/pr135-appeal-request-form.png", width: 100%)
+] <fig-pr135-appeal-request-form>
+
+- The chat thread renders WhatsApp-style bubbles (own messages right, others left) with sender identity and frozen role badges, a pinned composer, and file and image attachments (base64, at most 2 MiB each and 4 per message) (@fig-pr135-image-attachment).
+
+#figure(
+  placement: bottom,
+  caption: [
+    A chat message carrying an image attachment, stored inline as base64.
+  ]
+)[
+  #image("figure/pr135-image-attachment-message.png", width: 100%)
+] <fig-pr135-image-attachment>
+
+- The participant page lists each participant's name, email (mailto link), and role (@fig-pr135-participant-list); a participating instructor can invite another instructor or observer of the course, who is emailed and gains view and post access (@fig-pr135-invite-participant).
+
+#figure(
+  placement: bottom,
+  caption: [
+    The participant page, listing each participant's name, email, and role.
+  ]
+)[
+  #image("figure/pr135-participant-list.png", width: 100%)
+] <fig-pr135-participant-list>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The invitation flow: a participating instructor can invite another instructor or observer of the course into the appeal.
+  ]
+)[
+  #image("figure/pr135-invite-participant.png", width: 100%)
+] <fig-pr135-invite-participant>
+
+- The closing flow lets a participating instructor propose a closing result (@fig-pr135-close-request); the student sees the proposal with *Agree* / *Decline* buttons (@fig-pr135-popup-close-request), a system message records each decision in the thread (@fig-pr135-system-message), and the final result is shown on the appeal list and thread header once the appeal closes (@fig-pr135-appeal-close-result).
+
+#figure(
+  placement: bottom,
+  caption: [
+    A participating instructor proposing a closing result for the appeal.
+  ]
+)[
+  #image("figure/pr135-close-request.png", width: 100%)
+] <fig-pr135-close-request>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The student-facing pop-up showing the proposed closing result with *Agree* / *Decline* buttons, and the pending result of the appeal.
+  ]
+)[
+  #image("figure/pr135-popup-close-request.png", width: 100%)
+] <fig-pr135-popup-close-request>
+
+#figure(
+  placement: bottom,
+  caption: [
+    System messages in the thread recording the student's *Agree* / *Decline* decision.
+  ]
+)[
+  #image("figure/pr135-system-message-approve-decline.png", width: 100%)
+] <fig-pr135-system-message>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The final closing result as shown on the appeal page after the appeal is closed.
+  ]
+)[
+  #image("figure/pr135-appeal-close-result.png", width: 100%)
+] <fig-pr135-appeal-close-result>
+
+- The admin assignment and section forms gain the corresponding fields (assignment state and TAs; section type and lecturers).
+
+The feature was verified by 28 new unit tests in `appealService.test.ts`, covering create, get, list, and post, participant resolution, permissions, invites, role stamping, and the full close flow (part of a service test suite of 103 tests), with typechecking and linting clean.
+
+=== Design of the Request Type (#pr(141))
+
+The Assignment Appeal feature is designed as follows:
+
++ *A new request type.* The `RequestType` enum gains `"Assignment Appeal"`. The request metadata stores the code of the appealed assignment, and the reason and supporting documents are recorded as the opening comment of the thread, following the same pattern as the other request types. Only graded assignments can be appealed.
+
++ *A creation gate.* An appeal can be created only when the appealed assignment exists and its state is `"graded"`; otherwise the creation fails with an `AssignmentNotFoundError` or `AssignmentNotGradedError`, respectively.
+
++ *Participant-scoped access.* A new optional `participants` field on the base request model carries the users allowed to view and participate in the appeal. The list is resolved server-side at creation --- the appealing student, the course instructors enrolled in the student's section (including course-wide `"*"` enrollments), and the assignment's TAs --- and is frozen thereafter; the client can never set it, since the request initializers omit the field. Appeal requests are participant-only, so the usual class-role access no longer applies: a TA who holds no enrollment in the course still sees the appeals they participate in, and an observer never sees an appeal they are not part of.
+
++ *Course admins.* A course admin can view and decide every appeal in the courses they administer, even appeals they filed themselves. This is particularly useful when testing the feature with a single account.
+
++ *Decisions.* Any participant other than the appealing student --- that is, a responsible lecturer or TA --- can approve or reject the appeal; the appealing student cannot decide their own appeal unless they are a course admin. As with other request types, an earlier decision can be revised.
+
++ *No re-appeal.* An assignment appeal has no higher instance to escalate to, so the re-appeal action is disabled for appeals; the thread page does not show the re-appeal button.
+
++ *Notifications.* Appeals notify the participants only, excluding the acting user: a student action reaches the responsible lecturers and TAs, and a staff decision reaches the student and the other participants. There is no class-wide instructor/observer blast and no CC'd observers.
+
+=== Implementation of the Request Type (#pr(141))
+
+The feature was implemented across all three packages of the monorepo (31 files, about 1,400 added lines). The main changes are as follows.
+
+==== Service
+
+In the _service_ package (the data models and business logic):
+
+- The `RequestType` enum gains `"Assignment Appeal"`, and a new `AssignmentAppealRequest` model is constructed from the shared request base, with the appealed assignment code as its metadata.
+- The `BaseRequest` model gains the optional `participants: UserID[]` field described above.
+- The `Course` model gains two optional fields used by appeals: `assignments[].state` (`"open"`, `"closed"`, or `"graded"`), and `assignments[].tas` (the emails of the responsible TAs). Both are optional so that existing database documents and the test fixtures of other contributors are unaffected; an assignment with no state is treated as not graded. The lecturers of a section are not stored separately --- they are the course instructors enrolled in that section, the same roster shown on the request header. The `effectiveRequestTypes` mapping is now pre-processed so that legacy course documents that predate the new request type are accepted and default to the appeal type being enabled.
+- In the request service, appeal creation resolves and freezes the participant list, gated on the assignment being graded; a new access check grants participants and course admins access to appeal requests; the listing logic filters appeals to participants, additionally showing course admins every appeal in their courses and every participant their appeals regardless of enrollment; the decision logic allows any non-requester participant to approve or reject, with a course admin override; and the re-appeal action is blocked for appeals.
+- The notification service branches on appeals: it notifies the participants minus the acting user instead of the class-wide instructor/observer rosters.
+- A new `getUsersByEmail` method on the user repo and service resolves participant names, preserving input order and ignoring missing emails.
+
+==== Server
+
+In the _server_ package (the tRPC layer), a new `getAllByEmails` query exposes the above name resolution over the network, taking an array of emails and returning only the minimal `{ email, name }` shape, so that enrollments and the `sudoer` flag are never leaked for arbitrary emails.
+
+==== Site
+
+In the _site_ package (the React/Next.js frontend):
+
+- A new `AssignmentAppealRequestForm` lets a student pick a graded assignment from the course and write the reason and supporting documents as the opening message (@fig-appeal-request-form).
+- The request table gains a dedicated *Assignment* column showing the appealed assignment code.
+- The request thread page shows a *"TA in charge"* list under the instructor list for appeals (@fig-appeal-thread-ta-list). The list is hidden when the course cannot be loaded (for example, for a TA with no enrollment in the course) rather than showing a misleading empty state.
+- The comment / decide / cancel permissions on the thread adapt to the participant model, and the re-appeal button is hidden for appeals.
+- The admin assignment form gains a *State* select and a *"TA in charge"* textarea accepting one email per line (@fig-assignment-form), with a small `parseEmails` / `emailsToText` helper.
+- New courses and UST-imported courses default `"Assignment Appeal"` to enabled in their effective request types.
+
+#figure(
+  placement: bottom,
+  caption: [
+    The admin assignment form with the new State select and "TA in charge" textarea.
+  ]
+)[
+  #image("figure/pr141-assignment-form.png", width: 55%)
+] <fig-assignment-form>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The student-facing form for creating an assignment appeal. Only graded assignments can be selected, and the reason and supporting documents are sent as the opening thread message.
+  ]
+)[
+  #image("figure/pr141-appeal-request-form.png", width: 100%)
+] <fig-appeal-request-form>
+
+#figure(
+  placement: bottom,
+  caption: [
+    The request thread page for an appeal, showing the "TA in charge" list under the instructor list.
+  ]
+)[
+  #image("figure/pr141-appeal-thread-ta-list.png", width: 100%)
+] <fig-appeal-thread-ta-list>
+
+=== Testing
+
+The feature is covered by 25 new test cases in `appealRequest.test.ts`, organized around the behaviors of the feature:
+
+#table(
+  columns: (auto, auto, 1fr),
+  [*Test group*], [*Cases*], [*Behavior covered*],
+  [*Creation*], [3], [The participant list is resolved from the section's instructors and the assignment's TAs and stored on the request; an unknown assignment and an assignment that is not graded are rejected.],
+  [*Access*], [3], [The student, the section's lecturer, and the TA can read the appeal; an observer and an instructor of another section cannot.],
+  [*Comment*], [2], [A TA and a lecturer can comment; a non-participant cannot.],
+  [*Approve / reject*], [4], [A TA can approve and a lecturer can reject; the appealing student cannot decide their own appeal; a non-participant cannot decide.],
+  [*Listing*], [5], [The student and the section's lecturer see the appeal; instructors of other sections and observers do not; a TA without an instructor enrollment still sees it.],
+  [*Cancel / re-appeal*], [2], [The student can cancel their own appeal; a decided appeal cannot be re-appealed.],
+  [*Admin access*], [6], [An admin can read, comment, and decide any appeal in the course, including appeals they filed themselves, and sees appeals from sections they are not enrolled in; an admin of another course cannot.],
+)
+
+Taken together, the cases exercise the appeal's participant model from every role --- who may read, comment, decide, cancel, and see an appeal in the listings, including the course-wide admin visibility across sections. The full service test suite passes with 116 tests and 0 failures; `bun run typecheck` is green across the service, server, and site packages, and `bunx biome check` is clean.
+
+=== Review (#pr(141))
+
+Harry reviewed the feature in Pull Request #pr(141) on August 19 and requested changes. His central finding was a blocking semantic issue: the optional, frozen *participants* field introduces a second permission model that runs alongside the role-based access of the rest of the request system. Because the field lives on the shared `BaseRequest` model, any request type can carry it, which admits invalid states --- an appeal without `participants` silently falls back to class-role access, while an ordinary request that happens to carry the field becomes participant-only. He suggested keeping `BaseRequest` unchanged and modelling appeal routing through assignments instead: each assignment exposes one or more *grading components* (defaulting to a single "All grading components" entry when no breakdown is configured), each component configures its responsible TAs, and the appeal metadata stores the selected assignment and component. The existing role-based permissions would remain the ordinary request access rules, with the selected component supplying the additional responsible-TA reviewers, and a single authorization/reviewer resolver would be shared by get, comment, decide, listing, displayed reviewer data, and notification recipients so that the paths cannot disagree.
+
+A second tier of findings accompanied the design proposal. The course-admin role should not be promoted to a request adjudicator --- an admin should gain appeal rights only through a separate qualifying role, such as instructor or responsible TA. The `getRequestsAs()` query should keep its role-scoped meaning, with an explicit assigned/reviewer inbox for responsible TAs instead of inserting their appeals into every role view. The `getAllByEmails` name-resolution endpoint should be replaced with a request-scoped roster lookup, since returning only the minimal `{ email, name }` shape still lets any authenticated user enumerate registered identities. The notification logic should reuse a single assembly-and-send path shared with ordinary request notifications instead of a parallel implementation, and `formatRequestMetadata()` should render the appealed assignment (and, after the redesign, the grading component) in notification text and be made exhaustive. Finally, the admin form should validate responsible-TA addresses before submission, and the enlarged editor should stay within the viewport at small screen sizes. These findings were not addressed within the term and are taken up as future work below.
+
+=== Future Work
+
+The design review left the feature under redesign, and the next iteration will address the findings that were not resolved within the term:
+
+- *Rebuild the appeal on assignments and grading components.* The optional `participants` field will be removed from the shared request base, which will be kept unchanged. Instead, each assignment will expose one or more grading components (defaulting to a single "All grading components" entry when no breakdown is configured), each component configuring its responsible TAs, and the appeal metadata will store the selected assignment and component.
+- *Route reviewers through one authorization path.* A single authorization/reviewer resolver will be shared by get, comment, decide, listing, displayed reviewer data, and notification recipients, resolving the responsible-TA reviewers from the selected component on top of the ordinary role-based permissions, so that the paths cannot disagree.
+- *Keep course admins out of adjudication.* The course-admin exception will be removed; an admin will gain appeal rights only through a separate qualifying role, such as instructor or responsible TA.
+- *Preserve the role-scoped request views.* `getRequestsAs()` will keep its role-scoped meaning, and an explicit assigned/reviewer inbox will expose the appeals assigned to a user as a TA instead of inserting them into every role view.
+- *Scope the name resolution.* The `getAllByEmails` endpoint will be replaced with a request-scoped roster lookup, so that arbitrary authenticated users cannot enumerate registered identities.
+- *Unify the notification path.* The appeal notification logic will reuse the single assembly-and-send path of ordinary request notifications instead of a parallel implementation, and `formatRequestMetadata()` will be made exhaustive so that the appealed assignment (and, later, the grading component) always appears in notification text.
+- *Fix the remaining UI and validation findings.* The admin form will validate responsible-TA addresses before submission, and the enlarged editor will stay within the viewport at small screen sizes.
+
+Once the redesign is in place, the tests in `appealRequest.test.ts` will be revised to exercise the public interface semantics --- an admin-only user cannot list, read, comment on, or decide an appeal; a student sees only their own requests; responsible TAs see only their assigned components; the default component works --- rather than the frozen participant and admin implementation details.
+
 == CI Build Fix (#issue(68), #pr(129))
 
 The first contribution of this term, and the starting point for getting familiar with the project, was a fix for issue #issue(68), _CI Build Fails_, opened by Harry. The CI build failed when the author of a pull request did not have write permission to the repository: the Docker login step of the build workflow attempted to authenticate on every event, including pull requests from forks, where the required secrets are not available.
@@ -543,7 +825,7 @@ To make the public site self-describing and to support open-source attribution, 
 
 = Planning
 
-The work on the thread system was planned in several stages, which are reflected in the commit history of #pr(134) and its review history:  
+The work this term was planned in several stages, which are reflected in the commit histories and review histories of #pr(134) and #pr(141):
 
 + *Familiarization and First Contribution* (June). Dhairya studied the codebase starting from the CI build fix (commit #commit("d52cec2e"), #pr(129), closing #issue(68)) and set up his local development environment with the seed scripts.
 
@@ -553,13 +835,17 @@ The work on the thread system was planned in several stages, which are reflected
 
 + *Follow-up and Integration* (August). The remaining review comments were addressed directly in the pull request: the GridFS attachments update and the database migration (commit #commit("9ab5aa7")), followed by a fix for stale proof selection and orphaned GridFS sweeping (#commit("f457689")). Harry completed the final review, merged #pr(134), and then merged the schedule import, request validation and user-interface fixes, and local development environment (#pr(137), #pr(139), #pr(140)).
 
++ *Assignment Appeal* (August). Yat Fei designed and implemented the Assignment Appeal feature. It was initially built as a standalone chat-style appeals area (August 8--17), opened as Pull Request #pr(135) (August 9) and, following a review by Harry, closed (August 19) and rebuilt as a request type on the thread model (August 19). Follow-ups included course-admin visibility and decision rights for every appeal in a course (including appeals admins filed themselves), the removal of redundant section fields, and the narrowing of the `getAllByEmails` query to a minimal `{ email, name }` shape. The feature was opened as Pull Request #pr(141) on August 19, and the service test suite reached 116 tests passing. Harry reviewed the pull request the same day and requested a redesign of the appeal permission model; the review is described in the Methodology and its resolution is taken up as future work.
+
 = Conclusion
 
 In this Independent Work project, the team continued the even further development of CRS. The main deliverable of the term was the thread system (#pr(134)), which replaced the binary request--response model with an append-only conversation thread, monomorphic comment and status entries, and a normalized five-state request lifecycle. The review also moved proof attachments into GridFS and replaced compatibility adapters with an explicit database migration. The completed system was merged on August 18.
 
+In addition, Yat Fei developed a new Assignment Appeal request type (#pr(141)), which lets a student appeal the grade of a graded assignment in the request thread. The appeal is visible only to its participants --- the appealing student, the section’s lecturers, and the assignment’s TAs --- and is decided by the responsible lecturers and TAs, with course admins able to oversee every appeal in their courses. The appeal was initially designed as a standalone chat area and was rebuilt as a request type after review. The request type was reviewed, and the review requested a redesign of the appeal permission model, which is taken up as future work.
+
 For Dhairya, this term was also a first experience of working on a real-world codebase with an active upstream and a proper review culture. Starting from a small CI fix (commit #commit("d52cec2e")), he became comfortable with the system by reading the code line by line and hosting it locally for testing, and went on to design, implement, and iterate on the thread system through two rounds of detailed code review, learning a great deal about full-stack web development, data modeling, and maintaining backward compatibility along the way.
 
-Harry's additional work reduced the manual effort of setting up courses, moved request-type invariants into the service layer, and made the local environment reproducible for contributors. Future work includes deploying the thread migration with its strict ordering, completing the assignment-appeal and durable-notification work, and gathering feedback from students and instructors on the new conversation workflow.
+Harry’s additional work reduced the manual effort of setting up courses, moved request-type invariants into the service layer, and made the local environment reproducible for contributors. Future work includes deploying the thread migration with its strict ordering, completing the assignment-appeal and durable-notification work, and gathering feedback from students and instructors on the new conversation workflow.
 
 On the Site side, Simon’s form UX fixes improved date handling for assignments and deadline extensions, and the About page made project purpose, licensing, and repository links visible to end users while providing a path to third-party license notices.
 
@@ -567,4 +853,4 @@ On the Site side, Simon’s form UX fixes improved date handling for assignments
 
 We would like to extend our sincere gratitude to our advisor, Dr. Yau Chat Tsoi, whose support and guidance have been invaluable to us.
 
-We (except for Harry Li himself!) would also like to thank Harry Li, the lead developer of CRS, for his detailed code reviews and guidance throughout the development of the thread system.
+We (except for Harry Li himself!) would also like to thank Harry Li, the lead developer of CRS, for his detailed code reviews and guidance throughout the development of the thread system and the assignment appeal.
