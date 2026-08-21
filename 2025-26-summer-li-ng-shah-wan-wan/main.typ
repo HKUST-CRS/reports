@@ -198,7 +198,7 @@ Simon contributed request-form and calendar UX improvements during the Spring te
 
 Since Dhairya was new to the project, a significant portion of his work in this term involved familiarizing himself with the codebase and the technologies used by the system. To get familiar with the project, Dhairya first studied the repository starting from the commit #commit("d52cec2e"), which closed issue #issue(68) by fixing the CI build for pull requests authored by developers without write permission to the repository (#pr(129)). He then set up the local development environment and wrote a seeding script that bootstraps a test course and users into the local database, which allowed him to host the system locally for testing and understand how CRS works under the hood.
 
-After the familiarization phase, Dhairya implemented the main deliverable documented in this report: a thread-based conversation system for requests, tracked in Pull Request _Threads in CRS!_ (#pr(134)). The thread system addresses the _Conversation System_ future work item identified in the conclusion of the 2025-26 Winter report, which noted that students currently cannot provide additional information on an existing request, and instructors cannot ask for clarification without rejecting the request and asking the student to submit a new one.
+After the familiarization phase, Dhairya implemented his main deliverable, a thread-based conversation system for requests, tracked in Pull Request _Threads in CRS!_ (#pr(134)). The thread system addresses the _Conversation System_ future work item identified in the conclusion of the 2025-26 Winter report, which noted that students currently cannot provide additional information on an existing request, and instructors cannot ask for clarification without rejecting the request and asking the student to submit a new one.
 
 The objectives of this Independent Work project were as follows:
 
@@ -252,9 +252,30 @@ Harry's work in this term extended the system at these existing seams instead of
 
 == Thread System (#pr(134))
 
-The main deliverable documented in this report is the _thread system_, which introduces a thread-based conversation model for requests, replacing the previous binary request--response model.
+The _thread system_, introduces a thread-based conversation model for requests, replacing the previous binary request/response model.
 
 In the old model, a request was created once and could receive at most one response (approve or reject with optional remarks) from an instructor. This was restrictive in several ways: a student could not provide additional information on an existing request, an instructor could not ask for clarification or change a decision after submitting it, and there was no built-in notion of cancelling a request or appealing a decision. These limitations were identified as future work (_Conversation System_) in the 2025-26 Winter report.
+
+@fig-thread-before-after contrasts the two interactions on the same kind of request. Before #pr(134), an instructor responded on a separate response page that combined a decision dropdown, free-form remarks, and a submit button. After #pr(134), the request page itself carries an append-only thread and a persistent composer whose actions depend on the viewer's role and the current status of the request.
+
+#figure(
+  placement: none,
+  caption: [
+    Handling a request before and after #pr(134). The upper page shows the legacy response form: a decision dropdown with remarks and a submit button. The lower page shows the thread view with a persistent composer whose actions depend on the role and the current status.
+  ]
+)[
+  #grid(
+    columns: 1fr,
+    gutter: 4mm,
+    align: top,
+    [
+      #ux-shot("figure/thread-before.png")
+    ],
+    [
+      #ux-shot("figure/thread-after.png")
+    ],
+  )
+] <fig-thread-before-after>
 
 === Design
 
@@ -314,7 +335,7 @@ Additional changes in the PR include the following:
 - A development seed script (`bun run --filter=server seed`) was added to quickly set up a test course and user in the local database (commit #commit("128a0a1")).
 - Tests for the request service were reworked to cover thread mutations, status transitions, and legacy normalization.
 
-== Attachments in GridFS — Update to Review
+== Attachments in GridFS
 
 In the second round of review, Harry raised two concerns about the internal design and implementation of the thread system:
 
@@ -510,7 +531,7 @@ As part of the project, significant effort was dedicated to onboarding the new d
 
 / Phase 3\: Contribution:
 
-  In this phase, Dhairya implemented the main deliverable of the term, the thread system (#pr(134)). The work started with the initial thread-style lifecycle and its UI (commits #commit("78baa84") and #commit("09226b4")), followed by fixes and a development seed script, and was reviewed by Harry in two rounds. Addressing the design review required a major refactor that folded the response model into the thread lifecycle (commit #commit("8922590")), simplifying the data model to monomorphic comment and status entries with a five-state lifecycle, and reworking the request thread UI accordingly. Addressing the internal design review led to the update that moves proof attachments into GridFS and migrates the database to the thread schema (commits #commit("9ab5aa7") and #commit("f457689")). Throughout the review process, Dhairya also triaged the findings of GitHub's Copilot code review, fixing the valid findings (for example, an unstable table sort comparator) and evaluating the false positives.
+  In this phase, Dhairya implemented the main deliverable of the term, the thread system (#pr(134)). The work started with the initial thread-style lifecycle and its UI (commits #commit("78baa84") and #commit("09226b4")), followed by fixes and a development seed script, and was reviewed by Harry in two rounds. Addressing the design review required a major refactor that folded the response model into the thread lifecycle (commit #commit("8922590")), simplifying the data model to monomorphic comment and status entries with a five-state lifecycle, and reworking the request thread UI accordingly. Addressing the internal design review led to the update that moves proof attachments into GridFS and migrates the database to the thread schema (commits #commit("9ab5aa7") and #commit("f457689")). Throughout the review process, Dhairya also triaged the findings of GitHub's Copilot code review, fixing the valid findings (for example, an unstable table sort comparator) and evaluating the false positives. The pull request was merged on August 18, completing the main deliverable of the term.
 
 == Request Form UX Improvements (#pr(108), #pr(119))
 
