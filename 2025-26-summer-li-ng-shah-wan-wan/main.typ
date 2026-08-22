@@ -793,6 +793,122 @@ The design review left the feature under redesign, and the next iteration will a
 
 Once the redesign is in place, the tests in `appealRequest.test.ts` will be revised to exercise the public interface semantics --- an admin-only user cannot list, read, comment on, or decide an appeal; a student sees only their own requests; responsible TAs see only their assigned components; the default component works --- rather than the frozen participant and admin implementation details.
 
+== Examination Appeal
+
+This section introduces the Examination Appeal feature that I developed. Traditional exam appeal processes often involve tedious paperwork and communication overhead. To optimize this process, I developed a comprehensive online system that standardizes and automates the appeal workflow, innovatively introducing a fine-grained delegated access control mechanism for student TAs.
+
+#figure(
+  placement: none,
+  caption: [The overall operational logic and workflow of the Examination Appeal system.],
+)[
+  #ux-shot("figure/pr144flowchat.png", width: 75%)
+] <fig-exam-appeal-flowchart>
+
+As illustrated in the overall flowchart in @fig-exam-appeal-flowchart, the system's operational logic encompasses three core stages:
++ *Course Configuration*: Allows instructors to establish the exam structure and assign responsible TAs within the system.
++ *Appeal Submission*: Allows students to conveniently submit appeal requests for multiple exam questions through a single form.
++ *Authorized Processing*: Allows assigned TAs to access the Instructor View under restricted security permissions to independently grade their corresponding requests.
+
+#figure(
+  placement: none,
+  caption: [The Examination Configuration interface where instructors can define questions and assign TAs.],
+)[
+  #ux-shot("figure/pr144demo1.png", width: 55%)
+] <fig-exam-config-ui>
+
+For course management, instructors can locate a dedicated exam management module within the Course Configuration interface. After clicking the button to add an exam or editing a previously established one, instructors can define all questions for that exam in detail, and bind the email addresses of the responsible TAs to the corresponding questions, as shown in @fig-exam-config-ui. This step is not merely for data recording, but serves as the critical basis for the system's subsequent automatic permission distribution. Only the TAs added to the corresponding questions in this table will subsequently be granted the permission to read and respond to the related appeal requests.
+
+#figure(
+  placement: none,
+  caption: [Students can submit appeals for multiple questions, which the system automatically splits into independent requests.],
+)[
+  // Replace with your actual screenshot
+  #ux-shot("figure/pr144demo2.png", width: 90%)
+] <fig-exam-appeal-submission>
+
+On the student side, students can initiate an appeal by selecting the Examination Appeal category in the Request interface. To provide a smoother user experience, students can submit requests for multiple questions of the same exam at once in a single form. However, considering that different questions are often graded by different TAs, the system introduces an auto-splitting mechanism during backend processing. The system automatically splits the single form containing multiple questions into multiple independent request tickets, and redirects the students to the home page after submission, allowing them to independently track the processing status of each question on the Dashboard, as shown in @fig-exam-appeal-submission. Simultaneously, these independent requests are precisely distributed to the corresponding TAs for processing.
+
+#figure(
+  placement: none,
+  caption: [The Instructor View accessed by a delegated TA to manage their assigned requests securely.],
+)[
+  // Replace with your actual screenshot
+  #ux-shot("figure/pr144demo3.png", width: 90%)
+] <fig-ta-instructor-view>
+
+Finally, in the phase where TAs respond to requests, the system implements a dynamic routing and authorization mechanism. Under normal circumstances, the system strictly limits the Instructor View to users with formal teaching roles. However, through the design of this system, once the system authenticates that a student's email matches the TA email bound to an exam question, it triggers a permission exemption, unlocking the shortcut and access rights to the Instructor View for that TA. Most importantly, this access control is strictly limited. TAs can only view and manage the request tickets assigned to them, and the system ensures they are absolutely unable to modify or add any core course settings, perfectly safeguarding the system's security while enhancing efficiency, as shown in @fig-ta-instructor-view.
+
+
+=== Design of Examination Configuration
+
+To support fine-grained exam appeals and permission delegation, the system must first possess structured exam configuration data. This section details the underlying architecture and data flow design for managing course exams. As shown in the system architecture diagram in @fig-exam-config-arch, the implementation of this feature strictly follows the Frontend, Router, and Service layered architecture of the CRS system.
+
+#figure(
+  placement: none,
+  caption: [The system architecture and data flow for the Examination Configuration module.],
+)[
+  #ux-shot("figure/pr144flowchart2.png", width: 95%)
+] <fig-exam-config-arch>
+
+In the frontend design, instructors can access the Course Settings through the Instructor View, and open the Examination Configuration panel. Considering that the number of questions in an exam and the number of grading TAs are variable, I implemented a dynamic form here. Instructors can freely add or remove questions, and bind the corresponding TA's email address for each question, such as "Q1" and "Q2a". After the instructor clicks save, the frontend module encapsulates this data, and sends the update request to the backend via tRPC.
+
+According to the detailed data flow on the right side of the architecture diagram, when the tRPC request reaches the backend App Router, the first line of defense is the Zod data verification layer. Zod strictly validates whether the incoming data structure conforms to the extended definition of the Course schema. This step effectively prevents invalid or malicious data from entering the system core.
+
+After the Zod validation passes, the routing layer calls the method of the Course Services Object in the system core. Before actually executing the database update, the Service object ensures the security of the system. As illustrated in the architecture diagram, the Course Services Object interacts with the Auth Method and Permission Module, invoking the permission validation logic, `assertCourseRole`. The system checks whether the user initiating the tRPC request truly possesses the core role of instructor or admin in that course, thereby preventing unauthorized users, such as regular students or unauthorized TAs, from tampering with the exam settings.
+
+Once the Auth permission validation passes, the Course Services Object triggers the update process, and passes the validated parameters to the underlying Course Repo Object. In the Repository layer, the Course Repo Object is exclusively responsible for handling course data processing and communication with the database. It calls the specific Update Examinations method, constructs the corresponding database update command, such as MongoDB's `$set` operation, and stores the exam code, question numbers, and TA email mapping table into the database.
+
+Through the rigorous layered design described above, the system not only digitizes the tedious allocation of TA responsibilities, but also ensures that every step of the data flow from frontend input and backend validation to database writing possesses extremely high security and consistency, providing a highly reliable data source for the subsequent auto-splitting and TA permission exemption.
+
+
+=== Design of Appeal Submission and Auto-Splitting
+
+This section explores the system workflow and underlying mechanisms for students submitting exam appeal requests. As observed from the system architecture diagram in @fig-appeal-submission-arch, the design focus of this stage lies in the automatic splitting mechanism on the frontend, and the validation and write workflows on the backend.
+
+#figure(
+  placement: none,
+  caption: [The system architecture demonstrating the auto-splitting logic and request creation workflow.],
+)[
+  #ux-shot("figure/pr144flowchart3.png", width: 95%)
+] <fig-appeal-submission-arch>
+
+In the frontend design, students can access the Request interface through the Student view, and select the Examination Appeal Form to fill in the appeal details. To enhance the user experience, the system allows students to submit appeals for multiple exam questions within the same form. However, to align with the backend architecture where different questions must be processed independently by different TAs, I implemented an automatic splitting logic on the frontend. As shown in the upper part of the architecture diagram, the form containing multiple questions, namely the Multiple-Question Meta Form, is automatically decomposed into multiple independent single-question requests, namely the Single-Question Request Form, through loops and asynchronous logic when clicked to submit on the frontend. These independent requests are subsequently sent to the backend separately via tRPC.
+
+According to the data flow on the right side of the architecture diagram, when a new request reaches the backend, it is first handed over to Zod for data verification. Zod strictly validates the data format and required fields of each independent request. After the validation passes, the system calls the Request Services Object to process the core business logic.
+
+Within the Request Services Object, the system simultaneously interacts with multiple modules to ensure the legitimacy of the request. First, it invokes the Auth and Permission Module to verify the user's identity, confirming that the student initiating the request indeed possesses the student role for that course. Meanwhile, the Request Services Object interacts with the Course Repo Object, ensuring that the exam code and questions appealed by the student actually exist in the course settings.
+
+After all business logic and permission validations pass, the Request Services Object triggers the Create Request workflow. It calls the Create Request method at the Repo service level, and directly communicates with the Database, saving these split independent appeal tickets into the database.
+
+
+=== Design of TA Delegation and Access Control
+
+This section explores the system design and fine-grained access control mechanism for teaching assistants responding to requests. As can be seen from the system architecture diagram in @fig-ta-delegation-arch, the design focus of this part is on how TAs, whose original system identity is students, can securely acquire permissions and enter the administrator interface to process specific appeal requests.
+
+#figure(
+  placement: none,
+  caption: [The system architecture mapping the TA delegated access control and response authorization workflow.],
+)[
+  #ux-shot("figure/pr144flowchart4.png", width: 95%)
+] <fig-ta-delegation-arch>
+
+In the frontend architecture, when a TA logs in and enters the Student view, the system automatically triggers the Check TA roles module. This module uses React Query to initiate an asynchronous request, verifying with the backend whether the student is assigned as a TA for any exam. According to the detailed verification flow in the upper left of the architecture diagram, this module calls tRPC, sending the request to the backend Zod for basic data verification.
+
+After the Zod validation passes, the router calls the Request Services Object to process the core logic. To confirm the TA's identity, the Request Services Object calls the Get Course method, and passes the parameters to the underlying Course Repo Object, which communicates with the Database to retrieve detailed course and exam configuration data. The system extracts the returned Data Package, matching whether the user's email corresponds to the TA email in the exam question settings. Upon completion of the matching, the authentication result is returned to the frontend, and if the identities match, the system executes the Give Access logic, formally unlocking the corresponding interface shortcut on the frontend, allowing the TA to access the Instruction view across their default privileges.
+
+When the TA successfully enters the Instruction view and submits a Response for their assigned question, the data flow follows the path on the right side of the architecture diagram, entering the backend App router, and subsequently undergoing form validation via Zod's Data Verification.
+
+Next, the request enters the Services module at the bottom. At this stage, the system implements a dedicated dynamic permission exemption mechanism. Under normal circumstances, the action of responding to a request would be intercepted by the permission module, requiring the user to possess a formal instructor role. However, before passing the data to the Repo Services to be written into the Database, the Request Services Object verifies again whether the TA is the person in charge of that specific question by fetching the course data. Only under the condition of a complete match will the system bypass the regular instructor permission check, allow the response to proceed, and complete the database update. This design ensures that TAs can only grade assigned questions, while being absolutely unable to interfere with other course settings, perfectly achieving the dual purpose of enhancing efficiency and safeguarding system security.
+
+
+=== Future Work
+
+Although the current exam appeal system has achieved automatic ticket splitting and precise permission delegation, there is still room for further optimization in terms of system scalability and user experience. Future work can be explored from two directions, interface design and the underlying permission model.
+
+First, future work can explore developing a dedicated and independent case processing page for exam appeals. In the current system design, the split exam appeal tickets are displayed mixed with other types of course requests in the same overview list. However, after large-scale exams, the volume of appeal cases often surges in a short period, and mixed display may increase the difficulty of filtering and processing for the teaching team. Establishing an independent processing page can introduce advanced features specifically tailored to exam characteristics, such as multi-dimensional filtering by exam code, question number, or responsible TA, and even incorporate batch approve or reject operational mechanisms. This will provide instructors and TAs with a more intuitive overview perspective, further enhancing the processing efficiency of a large volume of cases.
+
+Second, future work can explore formally adding an independent teaching assistant role within the core database structure of the system. The current permission design relies on a dynamic permission exemption mechanism, whose essence is to allow users with a student role to temporarily acquire partial instructor permissions under specific conditions. While flexible, as system features continuously expand, frequent dynamic condition checks may increase the complexity and maintenance costs of the backend permission module. By introducing a regular and independent TA role into the system, the system can completely decouple the student's original identity from teaching management permissions. This will not only simplify the backend permission verification logic, but also establish more unified and clear system boundaries for TAs, thereby ensuring that the entire system's permission architecture possesses higher stability and scalability potential.
+
 == CI Build Fix (#issue(68), #pr(129))
 
 The first contribution of this term, and the starting point for getting familiar with the project, was a fix for issue #issue(68), _CI Build Fails_, opened by Harry. The CI build failed when the author of a pull request did not have write permission to the repository: the Docker login step of the build workflow attempted to authenticate on every event, including pull requests from forks, where the required secrets are not available.
@@ -844,6 +960,8 @@ The work this term was planned in several stages, which are reflected in the com
 In this Independent Work project, the team continued the even further development of CRS. The main deliverable of the term was the thread system (#pr(134)), which replaced the binary request--response model with an append-only conversation thread, monomorphic comment and status entries, and a normalized five-state request lifecycle. The review also moved proof attachments into GridFS and replaced compatibility adapters with an explicit database migration. The completed system was merged on August 18.
 
 In addition, Yat Fei developed a new Assignment Appeal request type (#pr(141)), which lets a student appeal the grade of a graded assignment in the request thread. The appeal is visible only to its participants --- the appealing student, the section’s lecturers, and the assignment’s TAs --- and is decided by the responsible lecturers and TAs, with course admins able to oversee every appeal in their courses. The appeal was initially designed as a standalone chat area and was rebuilt as a request type after review. The request type was reviewed, and the review requested a redesign of the appeal permission model, which is taken up as future work.
+
+Complementing the request types, Roger developed the Examination Appeal feature (#pr(144)). This feature digitized the exam review process by allowing instructors to assign specific exam questions to designated student TAs. It introduced a smart auto-splitting mechanism that divides a student's multi-question appeal form into independent request tickets. Furthermore, it implemented a delegated access control mechanism that safely grants student TAs the exact permissions needed to access the Instructor View and adjudicate appeals exclusively for their assigned questions.
 
 For Dhairya, this term was also a first experience of working on a real-world codebase with an active upstream and a proper review culture. Starting from a small CI fix (commit #commit("d52cec2e")), he became comfortable with the system by reading the code line by line and hosting it locally for testing, and went on to design, implement, and iterate on the thread system through two rounds of detailed code review, learning a great deal about full-stack web development, data modeling, and maintaining backward compatibility along the way.
 
