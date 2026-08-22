@@ -528,7 +528,7 @@ The appeal was designed as its own chat-style area rather than a request type. T
 From the home page, a "My Appeals" button opens the appeal list page (@fig-pr135-appeal-list-nav), which gathers every appeal into a single compact list (@fig-appeal-chat-list).
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The home page with a "My Appeals" button, which opens the appeal list page of the standalone appeal area.
   ]
@@ -537,7 +537,7 @@ From the home page, a "My Appeals" button opens the appeal list page (@fig-pr135
 ] <fig-pr135-appeal-list-nav>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The "My Appeals" list page of the first, discarded design: a standalone chat-style area with its own pages, tracked in Pull Request #pr(135). Each entry shows the course (with term), the appealed assignment, the creation datetime, and the status.
   ]
@@ -550,7 +550,7 @@ The standalone design is as follows:
 + *A chat conversation, not a request.* An appeal is stored in its own `appeals` collection as a conversation document --- one per course, assignment, and student --- holding the opening message, the message history, the participant list, and the appeal status. In the interface, an appeal opens into a WhatsApp-style chat thread with a pinned composer, distinct from the request thread view (@fig-appeal-chat-bubbles).
 
   #figure(
-    placement: bottom,
+    placement: none,
     caption: [
       The chat thread of the first design, with WhatsApp-style message bubbles, sender role badges, and a pinned message composer.
     ]
@@ -597,7 +597,7 @@ In the _site_ package (the React/Next.js frontend):
 - The create-appeal form lets a student pick an enrolled course and a graded assignment and write the opening message (@fig-pr135-appeal-request-form).
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The create-appeal form: a student picks an enrolled course and a graded assignment and writes the opening message.
   ]
@@ -608,7 +608,7 @@ In the _site_ package (the React/Next.js frontend):
 - The chat thread renders WhatsApp-style bubbles (own messages right, others left) with sender identity and frozen role badges, a pinned composer, and file and image attachments (base64, at most 2 MiB each and 4 per message) (@fig-pr135-image-attachment).
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     A chat message carrying an image attachment, stored inline as base64.
   ]
@@ -619,7 +619,7 @@ In the _site_ package (the React/Next.js frontend):
 - The participant page lists each participant's name, email (mailto link), and role (@fig-pr135-participant-list); a participating instructor can invite another instructor or observer of the course, who is emailed and gains view and post access (@fig-pr135-invite-participant).
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The participant page, listing each participant's name, email, and role.
   ]
@@ -628,7 +628,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-pr135-participant-list>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The invitation flow: a participating instructor can invite another instructor or observer of the course into the appeal.
   ]
@@ -639,7 +639,7 @@ In the _site_ package (the React/Next.js frontend):
 - The closing flow lets a participating instructor propose a closing result (@fig-pr135-close-request); the student sees the proposal with *Agree* / *Decline* buttons (@fig-pr135-popup-close-request), a system message records each decision in the thread (@fig-pr135-system-message), and the final result is shown on the appeal list and thread header once the appeal closes (@fig-pr135-appeal-close-result).
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     A participating instructor proposing a closing result for the appeal.
   ]
@@ -648,7 +648,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-pr135-close-request>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The student-facing pop-up showing the proposed closing result with *Agree* / *Decline* buttons, and the pending result of the appeal.
   ]
@@ -657,7 +657,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-pr135-popup-close-request>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     System messages in the thread recording the student's *Agree* / *Decline* decision.
   ]
@@ -666,7 +666,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-pr135-system-message>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The final closing result as shown on the appeal page after the appeal is closed.
   ]
@@ -727,7 +727,7 @@ In the _site_ package (the React/Next.js frontend):
 - New courses and UST-imported courses default `"Assignment Appeal"` to enabled in their effective request types.
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The admin assignment form with the new State select and "TA in charge" textarea.
   ]
@@ -736,7 +736,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-assignment-form>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The student-facing form for creating an assignment appeal. Only graded assignments can be selected, and the reason and supporting documents are sent as the opening thread message.
   ]
@@ -745,7 +745,7 @@ In the _site_ package (the React/Next.js frontend):
 ] <fig-appeal-request-form>
 
 #figure(
-  placement: bottom,
+  placement: none,
   caption: [
     The request thread page for an appeal, showing the "TA in charge" list under the instructor list.
   ]
