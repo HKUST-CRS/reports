@@ -935,11 +935,93 @@ As part of the project, significant effort was dedicated to onboarding the new d
 
 == Request Form UX Improvements (#pr(108), #pr(119))
 
-Two Spring-term fixes delivered by Simon improved how dates are presented and validated in the Site package. Assessment due time (#pr(108), resolving #issue(99)). When instructors added or edited assignments, the due-date controls did not reliably map the chosen calendar month and day onto existing assignment objects, and secondary fields could be filled before a due date was set. The change requires selecting the due date first, then maps dates to the correct month and day for existing objects, with checking logic aligned to that order. Deadline-extension calendar default (#pr(119), resolving #issue(49)). The deadline-extension request form opened the date picker on a default month that often did not match the assignment under request, forcing extra navigation. The form now defaults the calendar to the relevant month for the selected assignment, so students can pick an extension date with less friction.Both changes sit in the Site forms layer and complement the later service-side validation work in #pr(139) by improving the interactive path before submission.
+During the Spring term, Simon implemented two focused fixes improved how dates and times are chosen in the Site administration and request forms. Both changes address cases where the calendar or time controls did not line up with the assignment data the user had already selected, which made routine configuration and deadline-extension requests harder than necessary.
+
+=== Assessment due time (#pr(108), resolving #issue(99)).
+
+In the instructor administration flow for adding or editing assignments, the due-date control did not allow a separate due time: once a date was chosen, the system always stored the due time as 23:59 HKT. There was no way to set a different clock time for an assessment. Related fields such as “Latest Due Date after Extension” could also show an invalid value when the primary due date had not been set in a consistent way.
+
+#figure(
+  placement: none,
+  caption: [The original Add Assignment and Edit Assignment forms, where due time was fixed at 23:59 HKT and related fields could show an invalid date-time.],
+)[
+  #ux-shot("figure/due-time-issue.png", width: 95%)
+] <fig-due-time-issue>
+
+@fig-due-time-issue shows the original Add Assignment and Edit Assignment forms. On the left, the due date is a single date picker and the latest-extension field shows “Invalid DateTime”. On the right, an existing assignment is stored with a fixed 23:59 HKT due time, with no separate control for choosing another time of day.
+
+The fix splits due date and due time into separate controls and requires the user to pick a valid due date before the time control becomes usable. Instructors can then set both the calendar day and the clock time (instead of always 23:59 HKT), which improves validity checking and matches real assessment schedules.
+
+#figure(
+  placement: none,
+  caption: [The revised assignment form after #pr(108), with separate due date and due time controls and date selected before time.],
+)[
+  #ux-shot("figure/fixed-due-time.png", width: 95%)
+] <fig-fixed-due-time>
+
+@fig-fixed-due-time shows the revised Add Assignment dialog after #pr(108). The due date is chosen first; the time is selected afterwards through a dedicated time picker, so date and time are configured independently and in a defined order.
+
+=== Deadline-extension calendar default (#pr(119), resolving #issue(49)).
+
+On the student deadline-extension request form, the date picker defaulted to “today”. When the assignment deadline was months away, the open month showed few or no selectable dates near the real deadline, so students had to step through the calendar manually.
+
+#figure(
+  placement: none,
+  caption: [Deadline-extension date picker defaulting to the current month instead of the assignment deadline month (#issue(49)).],
+)[
+  #ux-shot("figure/default-month-issue.png", width: 95%)
+] <fig-default-month-issue>
+
+@fig-default-month-issue illustrates the original issue with the deadline-extension date picker (#issue(49)). The left panel opens on the current month (here December 2025) even though the relevant deadline is far from today; the right panel shows the month that should be shown by default (aligned with the original deadline).
+
+After the fix, the picker opens on the month of the selected assignment’s due date, so the first view already matches the deadline the student is extending.
+
+#figure(
+  placement: none,
+  caption: [Deadline-extension form after #pr(119), with the calendar opened on the month of the selected assignment’s due date.],
+)[
+  #ux-shot("figure/fixed-default-month.png", width: 95%)
+] <fig-fixed-default-month>
+
+@fig-fixed-default-month illustrates a dummy deadline-extension request form after #pr(119). With assignment “111 222 – Due Mar 03, 2026, 23:59 HKT” selected, the calendar defaults to March 2026 instead of the current month.
+
+These changes live in the Site forms layer. They do not replace service-side validation of request types; they improve the interactive path before submission. Later work on stronger request validation and course-sensitive forms (#pr(139)) continues the same idea: the browser should guide the user toward valid input, while the Service module remains the source of invariants.
 
 == About Page and Third-party Licenses (#pr(142))
 
-To make the public site self-describing and to support open-source attribution, an About page was added by Simon under the Site app router.The page is authored primarily in MDX and rendered through _Next.js_ MDX support (`@next/mdx`, `remark-gfm`), with shared visual styling via `mdx-components.tsx` so headings, links, and code blocks follow the same theme as the rest of the site. Content covers an introduction to CRS, the project MIT license, optional short notes on developers, and a link to the GitHub repository. For third-party packages, a root `licenses` script invokes `generate-license-file` across the monorepo package manifests and writes `packages/site/public/THIRD-PARTY-LICENSES.txt`. The About page exposes a download link to that file. Under Bun workspaces the generated list may still be incomplete relative to the full production dependency set; the page therefore states the main stack explicitly and treats the generated file as a best-effort notice to be refreshed when dependencies change (`bun run licenses`).
+The public site previously had no dedicated place to explain what CRS is, who maintains it, under what license the project is released, or how third-party open-source components are acknowledged. An About page was added under the Site App Router for students, instructors, and external readers of the CSE deployment.
+
+=== Content and appearance
+
+The page has three parts. The introduction states the purpose of CRS—streamlining course administrative requests such as section swaps, excused absences, deadline extensions, and grade appeals—names the development team and supervisor, Dr. Yau Chat Tsoi (Desmond), and links to the live system and the public GitHub repository. The license section records that the project source is released under the MIT License, with university-specific assets remaining the property of HKUST and the CSE department. An optional developers section can hold short notes on individual contributions.
+
+#figure(
+  placement: none,
+  caption: [The About CRS page, including introduction, acknowledgements, and GitHub link.],
+)[
+  #ux-shot("figure/about.png", width: 95%)
+] <fig-about>
+
+@fig-about shows the About page after #pr(142). The introduction summarises the system’s purpose, access model, acknowledgements to the supervisor, and the link to the public GitHub repository; the License section follows below the horizontal rule.
+
+=== Implementation
+
+About content is written in MDX rather than hand-written TSX, so prose can be maintained as Markdown while still rendering inside the _Next.js_ App Router. Official MDX support (`@next/mdx`, with `remark-gfm`) was wired through `next.config.ts`, including the `pageExtensions` needed for `.md` / `.mdx`. A root-level `mdx-components.tsx` maps headings, paragraphs, links, lists, and code blocks to the same Tailwind theme tokens used elsewhere on the site, so the About page follows the global light and dark appearance. The route is a thin `page.tsx` that imports the MDX module and wraps it in the shared layout width and spacing.
+
+=== Third-party licenses
+
+For open-source attribution, a root `licenses` script generates `packages/site/public/THIRD-PARTY-LICENSES.txt` by running `generate-license-file` over the monorepo package manifests (root, site, server, and service). The About page links to that file for download.
+
+#figure(
+  placement: none,
+  caption: [Excerpt of the generated third-party license file linked from the About page.],
+)[
+  #ux-shot("figure/license-view.png", width: 95%)
+] <fig-license-view>
+
+@fig-license-view shows an excerpt of the generated `THIRD-PARTY-LICENSES.txt`. The file is produced by the `generate-license-file` package and lists production dependencies (for example `react` / `react-dom` and `cors`) together with their license text for download from the About page.
+
+Under Bun workspaces the automated dump may still omit some production packages relative to the full dependency set; the page therefore also names the main stack in prose, and the script is meant to be re-run when dependencies change (`bun run licenses`). The About page remains the stable entry point for project identity, licensing, and repository links.
 
 = Planning
 
