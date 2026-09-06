@@ -24,7 +24,7 @@
 
   text(1.1em, date)
   v(1.2em, weak: true)
-  text(2em, weight: 700, title)
+text(2em, weight: 700, title)
 
   // Author information.
   pad(
